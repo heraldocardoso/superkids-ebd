@@ -126,6 +126,11 @@
     border-color: hsl(var(--ui--color-border));
   }
 
+  /* The Lara theme gives the footer no top padding: the buttons sat on the line. */
+  .p-dialog-footer {
+    padding: 0.85rem 1.5rem 1rem;
+  }
+
   .p-dialog-header .p-dialog-header-icon {
     color: hsl(var(--ui--color-ink-muted));
 
@@ -372,4 +377,43 @@ p-toast,
 p-confirmdialog,
 router-outlet {
   display: contents;
+}
+
+
+/* ------------------------------------------------------------- SCROLLBARS */
+/* Thin and dark, like the rest of the app (Windows otherwise draws a light grey bar). */
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: hsl(var(--ui--color-border)) transparent;
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: hsl(var(--ui--color-border));
+  border: 3px solid transparent;
+  border-radius: 999px;
+  background-clip: padding-box;
+
+  &:hover {
+    background-color: hsl(var(--ui--color-ink-muted) / 60%);
+  }
+}
+
+::-webkit-scrollbar-button {
+  display: none;
+  height: 0;
+  width: 0;
+}
+
+::-webkit-scrollbar-corner {
+  background: transparent;
 }
