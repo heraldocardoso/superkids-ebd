@@ -18,6 +18,8 @@ import org.adsantarem.ebd.usecase.autenticar.AutenticarUsuarioInteractor;
 import org.adsantarem.ebd.usecase.autenticar.AutenticarUsuarioUseCase;
 import org.adsantarem.ebd.usecase.eventos.EventosInteractor;
 import org.adsantarem.ebd.usecase.eventos.EventosUseCase;
+import org.adsantarem.ebd.usecase.frequencia.FrequenciaInteractor;
+import org.adsantarem.ebd.usecase.frequencia.FrequenciaUseCase;
 import org.adsantarem.ebd.usecase.obterusuario.ObterUsuarioInteractor;
 import org.adsantarem.ebd.usecase.obterusuario.ObterUsuarioUseCase;
 import org.adsantarem.ebd.usecase.painel.PainelInteractor;
@@ -78,5 +80,10 @@ public class UseCaseConfig {
     @Bean
     public EventosUseCase eventosUseCase(EventoGateway eventos) {
         return new EventosInteractor(eventos);
+    }
+
+    @Bean
+    public FrequenciaUseCase frequenciaUseCase(AlunoGateway alunos, AulaGateway aulas) {
+        return new FrequenciaInteractor(alunos, aulas);
     }
 }

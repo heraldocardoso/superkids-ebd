@@ -8,6 +8,7 @@ import {
   missingFields,
   StudentService,
   toStudent,
+  summarize,
   toStudentPayload
 } from './student.service';
 
@@ -89,5 +90,17 @@ describe('StudentService', () => {
       dataAula: '2026-10-18'
     });
     http.verify();
+  });
+});
+
+describe('attendance summary', () => {
+  it('compares presences with the lessons given, per month, semester and year', () => {
+    const months = Array.from({ length: 12 }, (_, i) => ({ month: i + 1, lessons: 0, present: 0, withBible: 0 }));
+    months[2] = { month: 3, lessons: 4, present: 2, withBible: 1 };
+    months[9] = { month: 10, lessons: 4, present: 3, withBible: 2 };
+    expect(summarize(months, 10, 10)).toEqual({ lessons: 4, present: 3, withBible: 2, rate: 75 });
+    expect(summarize(months, 1, 6)).toEqual({ lessons: 4, present: 2, withBible: 1, rate: 50 });
+    expect(summarize(months, 1, 12).rate).toBe(63);
+    expect(summarize(months, 4, 4).rate).toBeNull();
   });
 });

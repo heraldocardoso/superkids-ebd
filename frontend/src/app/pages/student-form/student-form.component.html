@@ -128,6 +128,13 @@
         <app-choice-pills question="Tem Bíblia?" [options]="hasBibleOptions" [(value)]="m.hasBible" />
       </fieldset>
 
+      @if (!isNew() && m.id) {
+        <fieldset class="m-0 flex min-w-0 flex-col gap-3 rounded-lg border border-border bg-surface-sunken p-3.5">
+          <legend class="px-2 font-heading text-[0.95rem] font-extrabold text-accent">Frequência</legend>
+          <app-attendance-stats [studentId]="m.id" />
+        </fieldset>
+      }
+
       <!-- ===================================================== MOTHER / FATHER -->
       @for (who of parents; track who.key) {
         <fieldset class="m-0 flex min-w-0 flex-col gap-3 rounded-lg border border-border bg-surface-sunken p-3.5">

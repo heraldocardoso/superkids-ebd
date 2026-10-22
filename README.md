@@ -121,6 +121,9 @@ Erros: `{ "mensagem", "codigo" }`, como na Escola de Louvor.
   sem limite). No dia em que a criança faz `máxima + 1` anos aparece um aviso no cartão da
   chamada, na lista de alunos, na ficha e no painel, com a turma sugerida. A app nunca muda
   sozinha: quem decide é a liderança (botão "Mudar para…" na ficha).
+- **Frequência do aluno** (na ficha): presenças no mês, no semestre e no ano, sempre comparadas com as
+  aulas dadas nas turmas da criança (aulas com chamada; as anteriores à inscrição não contam como falta).
+  `GET /api/alunos/{id}/frequencia?ano=` devolve os 12 meses.
 - **Eventos:** os eventos da EBD ficam na base de dados (`/api/eventos`). As datas padrão de
   Portugal não são guardadas, são calculadas em `frontend/src/app/core/portugal-dates.ts`: Ano Novo
   (1/1), Dia do Pai (19/3), Sexta-feira Santa (2 dias antes da Páscoa), Dia da Mãe (1.º domingo de

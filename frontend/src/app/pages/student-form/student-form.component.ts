@@ -1,5 +1,6 @@
 import { Component, computed, effect, input, model, output, signal, untracked } from '@angular/core';
 import { classMove, classMoveLabel } from '../../core/class-move';
+import { AttendanceStatsComponent } from '../../shared/attendance-stats/attendance-stats.component';
 import { DateFieldComponent } from '../../shared/date-field/date-field.component';
 import { FormsModule } from '@angular/forms';
 import { MessageService } from 'primeng/api';
@@ -45,7 +46,7 @@ const METHOD_LABEL: Record<ConsentMethod, string> = {
 @Component({
   selector: 'app-student-form',
   standalone: true,
-  imports: [DateFieldComponent, 
+  imports: [AttendanceStatsComponent, DateFieldComponent, 
     FormsModule,
     ButtonModule,
     CheckboxModule,

@@ -412,6 +412,38 @@ export function toStudentPayload(s: Student): StudentPayload {
   };
 }
 
+/* ================================================================ attendance */
+
+/** One month of a student's attendance: lessons given in their classes vs. lessons attended. */
+export interface MonthAttendance {
+  month: number;
+  lessons: number;
+  present: number;
+  withBible: number;
+}
+
+export interface AttendanceSummary {
+  lessons: number;
+  present: number;
+  withBible: number;
+  /** 0–100, or null when no lesson was given in the period. */
+  rate: number | null;
+}
+
+/** Adds up months `from`..`to` (1–12, inclusive). */
+export function summarize(months: MonthAttendance[], from: number, to: number): AttendanceSummary {
+  const sel = months.filter((m) => m.month >= from && m.month <= to);
+  const lessons = sel.reduce((n, m) => n + m.lessons, 0);
+  const present = sel.reduce((n, m) => n + m.present, 0);
+  const withBible = sel.reduce((n, m) => n + m.withBible, 0);
+  return { lessons, present, withBible, rate: lessons ? Math.round((present / lessons) * 100) : null };
+}
+
+interface AttendancePayload {
+  ano: number;
+  meses: { mes: number; aulas: number; presencas: number; comBiblia: number }[];
+}
+
 /* =================================================================== service */
 
 const API = '/api/alunos';
@@ -464,6 +496,17 @@ export class StudentService {
   /** As a Blob: an <img src> cannot send the Bearer token. */
   getAttachment(id: number, kind: AttachmentKind) {
     return this.http.get(`${API}/${id}/anexos/${ATTACHMENT_PATH[kind]}`, { responseType: 'blob' });
+  }
+
+  /** Month by month, for one year. */
+  attendance(id: number, year: number) {
+    return this.http
+      .get<AttendancePayload>(`${API}/${id}/frequencia`, { params: { ano: String(year) } })
+      .pipe(
+        map((p): MonthAttendance[] =>
+          p.meses.map((m) => ({ month: m.mes, lessons: m.aulas, present: m.presencas, withBible: m.comBiblia }))
+        )
+      );
   }
 
   removeAttachment(id: number, kind: AttachmentKind) {
