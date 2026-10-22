@@ -3,6 +3,7 @@ package org.adsantarem.ebd.infrastructure.config;
 import org.adsantarem.ebd.domain.gateway.AlunoGateway;
 import org.adsantarem.ebd.domain.gateway.AulaGateway;
 import org.adsantarem.ebd.domain.gateway.CriptografiaGateway;
+import org.adsantarem.ebd.domain.gateway.EventoGateway;
 import org.adsantarem.ebd.domain.gateway.FicheiroGateway;
 import org.adsantarem.ebd.domain.gateway.TokenGateway;
 import org.adsantarem.ebd.domain.gateway.TurmaGateway;
@@ -15,6 +16,8 @@ import org.adsantarem.ebd.usecase.aulas.AulasInteractor;
 import org.adsantarem.ebd.usecase.aulas.AulasUseCase;
 import org.adsantarem.ebd.usecase.autenticar.AutenticarUsuarioInteractor;
 import org.adsantarem.ebd.usecase.autenticar.AutenticarUsuarioUseCase;
+import org.adsantarem.ebd.usecase.eventos.EventosInteractor;
+import org.adsantarem.ebd.usecase.eventos.EventosUseCase;
 import org.adsantarem.ebd.usecase.obterusuario.ObterUsuarioInteractor;
 import org.adsantarem.ebd.usecase.obterusuario.ObterUsuarioUseCase;
 import org.adsantarem.ebd.usecase.painel.PainelInteractor;
@@ -70,5 +73,10 @@ public class UseCaseConfig {
     @Bean
     public PainelUseCase painelUseCase(AlunoGateway alunos, TurmaGateway turmas, AulaGateway aulas) {
         return new PainelInteractor(alunos, turmas, aulas);
+    }
+
+    @Bean
+    public EventosUseCase eventosUseCase(EventoGateway eventos) {
+        return new EventosInteractor(eventos);
     }
 }

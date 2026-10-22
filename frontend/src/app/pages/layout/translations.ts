@@ -6,6 +6,7 @@ export interface LayoutTranslations {
   rollCall: string;
   students: string;
   reports: string;
+  events: string;
   users: string;
   logout: string;
   subtitle: string;
@@ -18,6 +19,7 @@ export const layoutTranslations: TranslationSet<LayoutTranslations> = {
     rollCall: 'Chamada',
     students: 'Alunos',
     reports: 'Relatórios',
+    events: 'Eventos',
     users: 'Professoras',
     logout: 'Sair',
     subtitle: 'Escola Bíblica Dominical'

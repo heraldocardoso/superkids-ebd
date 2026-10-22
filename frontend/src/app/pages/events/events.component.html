@@ -1,0 +1,127 @@
+<p-toast position="bottom-center" />
+<p-confirmDialog styleClass="w-[min(26rem,calc(100vw-2rem))]" />
+
+<div class="flex flex-wrap items-center gap-2">
+  <h1 class="m-0 mr-auto font-heading text-2xl font-black">Eventos</h1>
+  <p-button label="Novo evento" icon="pi pi-plus" severity="warning" (onClick)="openNew()" />
+</div>
+
+<div class="flex items-center gap-2">
+  <p-button icon="pi pi-chevron-left" [text]="true" [rounded]="true" aria-label="Ano anterior" (onClick)="changeYear(-1)" />
+  <b class="min-w-[4rem] text-center font-heading text-xl font-black">{{ year() }}</b>
+  <p-button icon="pi pi-chevron-right" [text]="true" [rounded]="true" aria-label="Ano seguinte" (onClick)="changeYear(1)" />
+</div>
+
+@if (next(); as n) {
+  <section class="flex items-center gap-4 rounded-lg border-[1.5px] border-accent/60 bg-accent/[0.07] p-4">
+    <div class="grid h-14 w-14 shrink-0 place-items-center rounded-lg bg-accent text-ink-on-accent">
+      <span class="text-center leading-none">
+        <b class="block font-heading text-2xl font-black">{{ day(n.date) }}</b>
+        <span class="text-[0.7rem] font-extrabold uppercase">{{ weekday(n.date) }}</span>
+      </span>
+    </div>
+    <div class="flex min-w-0 flex-col gap-0.5">
+      <span class="text-xs font-extrabold uppercase tracking-wider text-accent">Próximo · {{ until(n.date) }}</span>
+      <b class="truncate font-heading text-lg font-black">{{ n.title }}</b>
+      <span class="truncate text-sm text-ink-muted">{{ longDate(n.date) }}@if (n.time) { · {{ n.time }}}@if (n.place) { · {{ n.place }}}</span>
+    </div>
+  </section>
+}
+
+@if (loaded()) {
+  <div class="flex flex-col gap-5">
+    @for (m of months(); track m.label) {
+      <section class="flex flex-col gap-2">
+        <h2 class="m-0 text-xs font-extrabold uppercase tracking-wider text-ink-muted">{{ m.label }}</h2>
+        <ul class="m-0 flex list-none flex-col gap-2 p-0">
+          @for (item of m.items; track item.key) {
+            <li>
+              <button
+                type="button"
+                class="flex w-full min-w-0 items-center gap-3 rounded-lg border border-border bg-surface-raised p-3 text-left text-ink transition-colors"
+                [class.opacity-55]="isPast(item.date)"
+                [class.cursor-default]="item.standard"
+                [class.hover:border-accent]="!item.standard"
+                [disabled]="item.standard"
+                (click)="openEdit(item)"
+              >
+                <span
+                  class="grid h-12 w-12 shrink-0 place-items-center rounded-md text-center leading-none"
+                  [class]="item.standard ? 'bg-secondary/15 text-secondary' : 'bg-surface-sunken text-accent'"
+                >
+                  <span>
+                    <b class="block font-heading text-lg font-black">{{ day(item.date) }}</b>
+                    <span class="text-[0.65rem] font-extrabold uppercase">{{ weekday(item.date) }}</span>
+                  </span>
+                </span>
+                <span class="flex min-w-0 flex-1 flex-col gap-0.5">
+                  <span class="flex min-w-0 items-center gap-2">
+                    <b class="truncate">{{ item.title }}</b>
+                    @if (item.standard) {
+                      <span class="shrink-0 rounded-full bg-secondary/15 px-2 text-[0.68rem] font-extrabold text-secondary">Data de Portugal</span>
+                    }
+                  </span>
+                  @if (item.time || item.place) {
+                    <span class="truncate text-sm text-ink-muted">
+                      @if (item.time) {<i class="pi pi-clock mr-1 text-[0.7rem]"></i>{{ item.time }}}
+                      @if (item.time && item.place) { · }
+                      @if (item.place) {<i class="pi pi-map-marker mr-1 text-[0.7rem]"></i>{{ item.place }}}
+                    </span>
+                  }
+                  @if (item.description) {
+                    <span class="line-clamp-2 text-sm text-ink-muted">{{ item.description }}</span>
+                  }
+                </span>
+                @if (!item.standard) {
+                  <i class="pi pi-pencil shrink-0 text-sm text-ink-muted"></i>
+                }
+              </button>
+            </li>
+          }
+        </ul>
+      </section>
+    }
+  </div>
+}
+
+<p-dialog
+  [header]="draft.id === null ? 'Novo evento' : 'Editar evento'"
+  [visible]="dialogOpen()"
+  (visibleChange)="dialogOpen.set($event)"
+  [modal]="true"
+  [draggable]="false"
+  styleClass="ebd-sheet w-[min(30rem,100vw)]"
+>
+  <form class="flex flex-col gap-3.5" (ngSubmit)="save()">
+    <label class="flex flex-col gap-1.5">
+      <span class="text-xs font-extrabold uppercase tracking-wider text-ink-muted">Nome <b class="text-accent">*</b></span>
+      <input pInputText name="title" [(ngModel)]="draft.title" placeholder="Ex.: Festa de Natal das crianças" maxlength="120" class="w-full" />
+    </label>
+    <div class="grid grid-cols-[minmax(0,1fr)_7rem] gap-3">
+      <label class="flex min-w-0 flex-col gap-1.5">
+        <span class="text-xs font-extrabold uppercase tracking-wider text-ink-muted">Data <b class="text-accent">*</b></span>
+        <app-date-field [value]="draft.date" (valueChange)="draft.date = $event ?? ''" />
+      </label>
+      <label class="flex min-w-0 flex-col gap-1.5">
+        <span class="text-xs font-extrabold uppercase tracking-wider text-ink-muted">Hora</span>
+        <p-inputMask name="time" mask="99:99" slotChar="hh:mm" [autoClear]="false" [(ngModel)]="draft.time" placeholder="15:00" styleClass="w-full" inputmode="numeric" />
+      </label>
+    </div>
+    <label class="flex flex-col gap-1.5">
+      <span class="text-xs font-extrabold uppercase tracking-wider text-ink-muted">Local</span>
+      <input pInputText name="place" [(ngModel)]="draft.place" placeholder="Ex.: Salão da igreja" maxlength="200" class="w-full" />
+    </label>
+    <label class="flex flex-col gap-1.5">
+      <span class="text-xs font-extrabold uppercase tracking-wider text-ink-muted">Descrição</span>
+      <textarea pInputTextarea name="description" rows="3" [(ngModel)]="draft.description" maxlength="1000" class="w-full"></textarea>
+    </label>
+    <div class="mt-1 flex flex-wrap items-center gap-2">
+      @if (draft.id !== null) {
+        <p-button label="Apagar" icon="pi pi-trash" severity="danger" [text]="true" (onClick)="remove()" />
+      }
+      <span class="flex-1"></span>
+      <p-button label="Cancelar" [text]="true" (onClick)="dialogOpen.set(false)" />
+      <p-button type="submit" label="Guardar" severity="warning" [loading]="saving()" />
+    </div>
+  </form>
+</p-dialog>

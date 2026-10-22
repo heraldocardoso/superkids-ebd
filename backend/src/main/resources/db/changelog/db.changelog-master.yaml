@@ -11,3 +11,5 @@ databaseChangeLog:
       file: db/changelog/changes/005-apelido-opcional.yaml
   - include:
       file: db/changelog/changes/006-segunda-turma.yaml
+  - include:
+      file: db/changelog/changes/007-criar-tabela-eventos.yaml

@@ -222,6 +222,37 @@
         <p class="m-0 text-ink-muted">{{ t().noBirthdays }}</p>
       }
     </section>
+
+    <!-- Upcoming events -->
+    <section class="flex min-w-0 flex-col gap-3 rounded-lg border border-border bg-surface-raised p-4">
+      <div class="flex flex-wrap items-center justify-between gap-2">
+        <h2 class="m-0 text-lg font-extrabold">Próximos eventos</h2>
+        <button type="button" class="text-sm font-extrabold text-accent" (click)="goToEvents()">Ver todos</button>
+      </div>
+      @if (upcoming().length) {
+        <ul class="m-0 list-none p-0">
+          @for (e of upcoming(); track e.key) {
+            <li class="flex items-center gap-3 border-t border-border py-2.5 first:border-t-0">
+              <span
+                class="grid h-10 w-10 shrink-0 place-items-center rounded-md text-center leading-none"
+                [class]="e.standard ? 'bg-secondary/15 text-secondary' : 'bg-surface-sunken text-accent'"
+              >
+                <span>
+                  <b class="block font-heading text-base font-black">{{ dayOf(e.date) }}</b>
+                  <span class="text-[0.6rem] font-extrabold uppercase">{{ monthShort(e.date) }}</span>
+                </span>
+              </span>
+              <span class="min-w-0 flex-1">
+                <span class="block truncate font-extrabold">{{ e.title }}</span>
+                <span class="block truncate text-sm text-ink-muted">{{ untilText(e.date) }}@if (e.time) { · {{ e.time }}}@if (e.place) { · {{ e.place }}}</span>
+              </span>
+            </li>
+          }
+        </ul>
+      } @else {
+        <p class="m-0 text-ink-muted">Sem eventos nos próximos 3 meses.</p>
+      }
+    </section>
   </div>
 } @else if (!failed()) {
   <p class="text-ink-muted">{{ t().loading }}</p>

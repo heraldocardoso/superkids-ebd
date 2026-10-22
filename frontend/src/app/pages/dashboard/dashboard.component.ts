@@ -7,6 +7,8 @@ import { ClassService } from '../../core/class.service';
 import { classMove } from '../../core/class-move';
 import { StudentService } from '../../core/student.service';
 import { forkJoin } from 'rxjs';
+import { CalendarItem, daysUntil, EventService, untilLabel } from '../../core/event.service';
+import { toIso } from '../../core/dates';
 import { capitalize, formatLong, formatShort, MONTHS, parseIso, today, WEEKDAYS } from '../../core/dates';
 import { TranslatedComponent } from '../../core/i18n/translated.component';
 import { StudentAvatarComponent } from '../../shared/student-avatar/student-avatar.component';
@@ -98,11 +100,14 @@ export class DashboardComponent extends TranslatedComponent<DashboardTranslation
 
   /** Children who already passed the top age of their class. */
   readonly toMove = signal(0);
+  /** Next three events in the coming three months, standard Portuguese dates included. */
+  readonly upcoming = signal<CalendarItem[]>([]);
 
   constructor(
     private service: DashboardService,
     private classService: ClassService,
     private students: StudentService,
+    private events: EventService,
     private router: Router
   ) {
     super();
@@ -114,6 +119,29 @@ export class DashboardComponent extends TranslatedComponent<DashboardTranslation
       next: ({ classes, students }) => this.toMove.set(students.filter((s) => classMove(s, classes)).length),
       error: () => this.toMove.set(0)
     });
+    const from = today();
+    const until = parseIso(from);
+    until.setMonth(until.getMonth() + 3);
+    this.events.calendar(from, toIso(until)).subscribe({
+      next: (list) => this.upcoming.set(list.slice(0, 3)),
+      error: () => this.upcoming.set([])
+    });
+  }
+
+  goToEvents(): void {
+    void this.router.navigate(['/events']);
+  }
+
+  dayOf(date: string): string {
+    return String(parseIso(date).getDate());
+  }
+
+  monthShort(date: string): string {
+    return MONTHS[parseIso(date).getMonth()].slice(0, 3);
+  }
+
+  untilText(date: string): string {
+    return untilLabel(daysUntil(date));
   }
 
   load(day: string | null): void {

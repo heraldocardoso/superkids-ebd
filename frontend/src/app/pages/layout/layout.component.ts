@@ -36,6 +36,7 @@ export class LayoutComponent extends TranslatedComponent<LayoutTranslations> {
       label: 'students',
       icon: 'M9 3.5a3.5 3.5 0 1 1 0 7a3.5 3.5 0 1 1 0-7M2.5 21c0-3.6 2.9-6.5 6.5-6.5s6.5 2.9 6.5 6.5M16 3.5a3.5 3.5 0 0 1 0 7M18 14.8c2 .8 3.5 3 3.5 6.2'
     },
+    { route: '/events', label: 'events', icon: 'M7 3v3M17 3v3M3.5 9h17M5 5h14a1.5 1.5 0 0 1 1.5 1.5V19a1.5 1.5 0 0 1-1.5 1.5H5A1.5 1.5 0 0 1 3.5 19V6.5A1.5 1.5 0 0 1 5 5zM8 13h2M14 13h2M8 16.5h2' },
     { route: '/reports', label: 'reports', icon: 'M14 3H6v18h12V7zM14 3v4h4M9 13h6M9 17h6' },
     {
       route: '/users',
@@ -45,7 +46,10 @@ export class LayoutComponent extends TranslatedComponent<LayoutTranslations> {
     }
   ];
 
+  /** Desktop tabs: everything the user may open. */
   readonly nav = computed(() => this.entries.filter((e) => !e.adminOnly || this.auth.isAdmin()));
+  /** Bottom bar: five at most, so the admin page moves to the header on phones. */
+  readonly bottomNav = computed(() => this.entries.filter((e) => !e.adminOnly));
 
   constructor(
     public auth: AuthService,

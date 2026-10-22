@@ -93,6 +93,7 @@ npm test                 # Jest
 | GET | `/api/aulas?turmaId=&data=` | aula do dia (professoras, lição, presenças) |
 | PUT | `/api/aulas/dados` | professoras e lição |
 | POST | `/api/aulas/presencas` | `{turmaId, data, alunoId, estado: PRESENTE\|COM_BIBLIA}`; repetir o mesmo estado desmarca |
+| GET/POST/PUT/DELETE | `/api/eventos` (`?de=&ate=`) | `{titulo, data, hora, local, descricao}` |
 | GET | `/api/painel?dia=` | painel |
 | GET | `/api/relatorios/aniversariantes?de=&ate=&turmaId=` | até 366 dias |
 
@@ -120,6 +121,10 @@ Erros: `{ "mensagem", "codigo" }`, como na Escola de Louvor.
   sem limite). No dia em que a criança faz `máxima + 1` anos aparece um aviso no cartão da
   chamada, na lista de alunos, na ficha e no painel, com a turma sugerida. A app nunca muda
   sozinha: quem decide é a liderança (botão "Mudar para…" na ficha).
+- **Eventos:** os eventos da EBD ficam na base de dados (`/api/eventos`). As datas padrão de
+  Portugal não são guardadas, são calculadas em `frontend/src/app/core/portugal-dates.ts`: Ano Novo
+  (1/1), Dia do Pai (19/3), Sexta-feira Santa (2 dias antes da Páscoa), Dia da Mãe (1.º domingo de
+  maio) e Natal (25/12). Para acrescentar outra data fixa, junta-se uma linha nesse ficheiro.
 - **Aniversários da semana:** segunda a domingo. 29 de fevereiro faz anos a 28 em anos comuns.
 
 ## Clean Architecture (backend)

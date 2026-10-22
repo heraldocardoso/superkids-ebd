@@ -30,6 +30,10 @@ export const routes: Routes = [
         loadComponent: () => import('./pages/reports/reports.component').then((m) => m.ReportsComponent)
       },
       {
+        path: 'events',
+        loadComponent: () => import('./pages/events/events.component').then((m) => m.EventsComponent)
+      },
+      {
         path: 'users',
         canActivate: [adminGuard],
         loadComponent: () => import('./pages/users/users.component').then((m) => m.UsersComponent)
