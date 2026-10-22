@@ -1,5 +1,9 @@
 # Super Kids EBD. Portas diferentes das da Escola de Louvor,
 # para as duas apps poderem correr ao mesmo tempo na mesma máquina.
+# Nome fixo do projeto: assim os contentores e os dados (volumes) são sempre os mesmos,
+# seja qual for o nome da pasta onde o projeto está.
+name: superkidsebd
+
 services:
 
   db:
