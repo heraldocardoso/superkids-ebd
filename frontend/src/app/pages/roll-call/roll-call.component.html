@@ -24,7 +24,7 @@
 
   <label class="flex flex-col gap-1.5">
     <span class="text-xs font-extrabold uppercase tracking-wider text-ink-muted">{{ t().lessonDate }}</span>
-    <app-date-field class="w-full md:w-72" [max]="todayIso" [value]="date()" (valueChange)="changeDate($event ?? '')" />
+    <app-date-field class="w-full md:w-72" [value]="date()" (valueChange)="changeDate($event ?? '')" />
   </label>
 
   <!-- Lesson details -->

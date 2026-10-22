@@ -37,4 +37,19 @@ describe('student import', () => {
     expect(plan.map((p) => p.status)).toEqual(['new', 'link', 'noMatch']);
     expect(plan[1].linkKey).toBe('diana');
   });
+
+  it('links a child who was already in the app before the import (not counted twice)', () => {
+    const pedro = emptyStudent(4);
+    pedro.id = 7;
+    pedro.firstName = 'Pedro';
+    pedro.lastName = 'Catarino';
+    const tas: SchoolClass = { ...formiguinhas, id: 4, name: 'Tás com Deus (10–14 anos)' };
+    const plan = planImport(
+      parseCsv('turma;nome;apelido;notas;tambem\nTás com Deus (10–14 anos);Pedro;Catarino;;\nEBD Tarde (7–14 anos);Pedro;Catarino;;sim'),
+      [tas],
+      [pedro]
+    );
+    expect(plan.map((p) => p.status)).toEqual(['duplicate', 'link']);
+    expect(plan[1].linkStudent?.id).toBe(7);
+  });
 });

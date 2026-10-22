@@ -96,8 +96,14 @@ export function planImport(rows: ImportRow[], classes: SchoolClass[], students: 
   const existing = new Set(students.map((s) => `${s.classId}|${fold(fullName(s))}`));
   const byName = new Map<string, Student[]>();
   for (const s of students) byName.set(fold(fullName(s)), [...(byName.get(fold(fullName(s))) ?? []), s]);
+  // Children this file will create: a row for a child already in the app is not a second child.
   const createdInFile = new Map<string, number>();
-  for (const r of rows) if (!r.also && r.firstName) createdInFile.set(nameKey(r.firstName, r.lastName), (createdInFile.get(nameKey(r.firstName, r.lastName)) ?? 0) + 1);
+  for (const r of rows) {
+    if (r.also || !r.firstName) continue;
+    const key = nameKey(r.firstName, r.lastName);
+    if (byName.has(key)) continue;
+    createdInFile.set(key, (createdInFile.get(key) ?? 0) + 1);
+  }
 
   const seen = new Set<string>();
   return rows.map((r): PlannedRow => {
