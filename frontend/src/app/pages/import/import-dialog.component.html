@@ -1,0 +1,142 @@
+<p-dialog
+  header="Importar lista de crianças"
+  [visible]="visible()"
+  (visibleChange)="$event ? visible.set(true) : close()"
+  [modal]="true"
+  [closable]="!running()"
+  [draggable]="false"
+  [style]="{ width: '44rem' }"
+  styleClass="ebd-sheet"
+>
+  <div class="flex flex-col gap-4">
+    @if (!fileName()) {
+      <p class="m-0 text-sm text-ink-muted">
+        Escolha um ficheiro <b class="text-ink">CSV</b> (no Excel: Guardar como → CSV) com as colunas
+        <b class="text-ink">turma; nome; apelido; notas; tambem</b>. Só o nome é obrigatório. Use <b class="text-ink">tambem = sim</b> para uma criança que já está noutra turma e também frequenta esta (por exemplo a EBD Tarde). As fichas ficam marcadas como incompletas até
+        serem preenchidas.
+      </p>
+      <label
+        class="flex cursor-pointer flex-col items-center gap-2 rounded-lg border-2 border-dashed border-accent/50 bg-surface-sunken p-8 text-center hover:bg-accent/5"
+      >
+        <i class="pi pi-upload text-2xl text-accent"></i>
+        <b>Escolher ficheiro</b>
+        <span class="text-sm text-ink-muted">.csv</span>
+        <input type="file" accept=".csv,text/csv,text/plain" class="hidden" (change)="pick($event)" />
+      </label>
+    } @else {
+      <div class="flex flex-wrap items-center gap-2 text-sm">
+        <i class="pi pi-file text-accent"></i>
+        <b class="min-w-0 flex-1 truncate">{{ fileName() }}</b>
+        @if (!running() && !finished()) {
+          <p-button label="Outro ficheiro" [text]="true" size="small" (onClick)="reset()" />
+        }
+      </div>
+
+      @if (finished()) {
+        <div class="rounded-md border border-status-success/50 bg-status-success-faded px-3 py-2.5 text-sm font-bold text-status-success">
+          Importação concluída: {{ toCreate().length }} crianças criadas e {{ toLink().length }} ligadas a uma segunda turma{{ failures().length ? ' (' + failures().length + ' com erro)' : '' }}.
+        </div>
+      } @else {
+        <div class="flex flex-wrap gap-2 text-sm font-extrabold">
+          <span class="rounded-full bg-status-success-faded px-3 py-1 text-status-success">{{ toCreate().length }} para criar</span>
+          @if (toLink().length) {
+            <span class="rounded-full bg-secondary/15 px-3 py-1 text-secondary">{{ toLink().length }} também nesta turma</span>
+          }
+          @if (duplicates()) {
+            <span class="rounded-full bg-surface-sunken px-3 py-1 text-ink-muted">{{ duplicates() }} já existem (ignoradas)</span>
+          }
+          @if (newClasses().length) {
+            <span class="rounded-full bg-status-warning-faded px-3 py-1 text-accent">{{ newClasses().length }} turma(s) nova(s)</span>
+          }
+          @if (problems().length) {
+            <span class="rounded-full bg-status-danger-faded px-3 py-1 text-status-danger">{{ problems().length }} com problema</span>
+          }
+        </div>
+      }
+
+      @if (running() || finished()) {
+        <div class="flex flex-col gap-1.5">
+          <div class="h-2.5 overflow-hidden rounded-full bg-surface-sunken">
+            <div class="h-full rounded-full bg-accent transition-[width]" [style.width.%]="progress()"></div>
+          </div>
+          <span class="text-xs font-bold text-ink-muted">{{ done() }} de {{ total() }}</span>
+        </div>
+      }
+
+      @if (failures().length) {
+        <ul class="m-0 flex list-none flex-col gap-1 rounded-md border border-status-danger/40 bg-status-danger-faded p-3 text-sm text-status-danger">
+          @for (f of failures(); track $index) {
+            <li>{{ f }}</li>
+          }
+        </ul>
+      }
+
+      @if (problems().length && !finished()) {
+        <ul class="m-0 flex list-none flex-col gap-1 rounded-md border border-status-danger/40 bg-status-danger-faded p-3 text-sm text-status-danger">
+          @for (p of problems(); track p.line) {
+            <li>
+              Linha {{ p.line }}:
+              {{ label(p) || '(sem nome)' }} —
+              {{ p.status === 'noName' ? 'sem nome' : p.status === 'noMatch' ? p.problem : 'turma "' + p.className + '" não existe' }} (ignorada)
+            </li>
+          }
+        </ul>
+      }
+
+      <div class="flex max-h-[50vh] flex-col gap-3 overflow-y-auto pr-1">
+        @for (g of groups(); track g.name) {
+          <section class="rounded-lg border border-border bg-surface-sunken p-3">
+            <header class="mb-2 flex flex-wrap items-baseline gap-2">
+              <b class="font-heading">{{ g.name }}</b>
+              @if (g.isNew) {
+                <span class="rounded-full bg-status-warning-faded px-2 text-[0.7rem] font-extrabold text-accent">turma nova</span>
+              }
+              <span class="ml-auto text-xs font-bold text-ink-muted">{{ g.toCreate }} novas{{ g.toLink ? ' · ' + g.toLink + ' de outras turmas' : '' }} · {{ g.rows.length }} na lista</span>
+            </header>
+            <div class="flex flex-wrap gap-1.5">
+              @for (r of g.rows; track r.line) {
+                <span
+                  class="rounded-full px-2.5 py-1 text-[0.8rem] font-bold"
+                  [class]="
+                    r.status === 'new'
+                      ? 'bg-surface-raised text-ink'
+                      : r.status === 'link'
+                        ? 'bg-secondary/15 text-secondary'
+                        : 'bg-transparent text-ink-muted line-through'
+                  "
+                  [title]="r.notes || (r.status === 'duplicate' ? 'Já existe nesta turma' : r.status === 'link' ? 'Já está noutra turma: fica com as duas' : '')"
+                >
+                  {{ label(r) }}@if (r.notes) {<span class="text-accent"> •</span>}
+                </span>
+              }
+            </div>
+          </section>
+        }
+      </div>
+      @if (!finished()) {
+        <p class="m-0 text-xs text-ink-muted">
+          <span class="text-accent">•</span> tem uma nota (fica na ficha, em Família → Notas).
+          <span class="text-secondary">Azul</span>: já está noutra turma e fica também nesta.
+        </p>
+      }
+    }
+  </div>
+
+  <ng-template pTemplate="footer">
+    <div class="flex justify-end gap-2">
+      @if (finished()) {
+        <p-button label="Fechar" severity="warning" (onClick)="close()" />
+      } @else {
+        <p-button label="Cancelar" [text]="true" [disabled]="running()" (onClick)="close()" />
+        <p-button
+          [label]="running() ? 'A importar…' : 'Importar ' + total() + ' crianças'"
+          icon="pi pi-check"
+          severity="warning"
+          [loading]="running()"
+          [disabled]="!total() || running()"
+          (onClick)="run()"
+        />
+      }
+    </div>
+  </ng-template>
+</p-dialog>

@@ -1,0 +1,202 @@
+/* =============================================================================
+   Super Kids EBD — design tokens
+   Os mesmos tokens da Escola de Louvor (navy · amarelo · azul-céu), com as
+   superfícies semânticas viradas para o navy: a EBD é uma app escura, no tom
+   mais jovem do site do Louvor. Mudar uma cor faz-se aqui e só aqui.
+   The single source of truth for colour, type, spacing, radius and elevation.
+   Values are CSS custom properties in HSL channel form (`H S% L%`, no wrapper)
+   so Tailwind can compose them with an alpha value:
+   `hsl(var(--ui--color-primary) / <alpha-value>)`.
+
+   THE PALETTE IS THREE BRAND COLOURS PLUS FOUR CONVENTIONAL STATUS COLOURS.
+   Everything else — every grey, every surface, every border — is derived from
+   the navy hue (222deg), so the whole UI reads as one family.
+
+     #131B2D  navy    primary    · surfaces, headings, body text, chrome
+     #FFD123  yellow  accent     · the one call-to-action colour
+     #4FA5E0  sky     secondary  · links, highlights, "info"
+
+   Status colours follow web convention and are used ONLY for meaning, never
+   for decoration: red destroys, green confirms, amber warns, sky informs.
+   ========================================================================== */
+
+:root {
+  /* ------------------------------------------------------------ BRAND: NAVY
+     Base #192643 — hsl(222 45% 18%). Subiu de 13% para 18% de luminosidade e
+     de 41% para 45% de saturação: abaixo disso o olho lê preto, não azul. */
+  --ui--color-primary-darkest: 222deg 45% 9%;
+  --ui--color-primary-darker: 222deg 45% 13%;
+  --ui--color-primary-dark: 222deg 45% 18%; // #192643
+  --ui--color-primary: 222deg 42% 24%;
+  --ui--color-primary-medium: 222deg 35% 34%;
+  --ui--color-primary-light: 222deg 28% 60%;
+  --ui--color-primary-lightest: 222deg 40% 94%;
+
+  /* -------------------------------------------------------- BRAND: SKY BLUE */
+  --ui--color-secondary-darkest: 204deg 70% 28%;
+  --ui--color-secondary-dark: 204deg 70% 42%;
+  --ui--color-secondary: 204deg 70% 59%; // #4FA5E0
+  --ui--color-secondary-medium: 204deg 70% 72%;
+  --ui--color-secondary-light: 204deg 70% 88%;
+  --ui--color-secondary-lightest: 204deg 70% 96%;
+
+  /* ---------------------------------------------------------- BRAND: YELLOW */
+  --ui--color-accent-darkest: 47deg 100% 30%;
+  --ui--color-accent-dark: 47deg 100% 42%;
+  --ui--color-accent: 47deg 100% 57%; // #FFD123
+  --ui--color-accent-medium: 47deg 100% 72%;
+  --ui--color-accent-light: 47deg 100% 88%;
+  --ui--color-accent-lightest: 47deg 100% 96%;
+
+  /* -------------------------------------------------------------- NEUTRALS
+     Same 222deg hue as the navy, desaturated. No third-party greys. */
+  --ui--color-gray-darkest: 222deg 32% 10%;
+  --ui--color-gray-darker: 222deg 26% 18%;
+  --ui--color-gray-dark: 222deg 20% 30%;
+  --ui--color-gray-medium-dark: 222deg 14% 45%;
+  --ui--color-gray-medium: 222deg 14% 65%;
+  --ui--color-gray-light: 222deg 24% 88%;
+  --ui--color-gray-lighter: 222deg 34% 96%;
+  --ui--color-gray-lightest: 0deg 0% 100%;
+
+  /* ---------------------------------------------------------------- STATUS
+     Convenção da web, em versões claras para lerem sobre o navy.
+     Os "faded" são tintas escuras opacas (fundos de toast e avisos). */
+  --ui--color-status-success: 152deg 68% 55%; // #3ddc97 · presente, confirmado
+  --ui--color-status-success-faded: 152deg 45% 17%;
+  --ui--color-status-danger: 0deg 100% 74%; // alergia, apagar
+  --ui--color-status-danger-faded: 0deg 45% 20%;
+  --ui--color-status-warning: 29deg 100% 63%; // restrição alimentar, cuidado
+  --ui--color-status-warning-faded: 29deg 50% 18%;
+  --ui--color-status-info: 216deg 100% 72%; // necessidades especiais, aviso neutro
+  --ui--color-status-info-faded: 216deg 45% 22%;
+
+  /* -------------------------------------------------------------- SEMANTIC
+     EBD: app escura. O fundo é o navy mais profundo, os cartões sobem um
+     degrau e o texto é branco. */
+  --ui--color-surface: 222deg 45% 13%; // fundo da app
+  --ui--color-surface-sunken: 222deg 45% 10%; // campos, zonas encaixadas
+  --ui--color-surface-raised: 222deg 42% 19%; // cartões e painéis
+  --ui--color-surface-inverse: 0deg 0% 100%; // papel (pré-visualização)
+  --ui--color-border: 222deg 34% 30%;
+  --ui--color-border-strong: 222deg 28% 46%;
+
+  --ui--color-ink: 0deg 0% 100%;
+  --ui--color-ink-muted: 225deg 45% 82%;
+  --ui--color-ink-inverse: var(--ui--color-primary-dark);
+  --ui--color-ink-on-primary: 0deg 0% 100%;
+  --ui--color-ink-on-accent: var(--ui--color-primary-dark);
+
+  /* Cores dos ícones de cuidados, só nos ícones. */
+  --ui--color-care-medication: 268deg 100% 80%;
+
+  /* Focus is always sky blue, on every control, everywhere. */
+  --ui--color-focus: var(--ui--color-secondary);
+  --ui--focus-ring: 0 0 0 0.2rem hsl(var(--ui--color-secondary) / 45%);
+
+  /* ------------------------------------------------------------ TYPOGRAPHY */
+  --ui--font-family-base: 'Montserrat', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --ui--font-family-heading: 'Montserrat', system-ui, -apple-system, 'Segoe UI', sans-serif;
+
+  /* ---------------------------------------------------------------- LAYOUT */
+  --ui--radius-sm: 0.375rem;
+  --ui--radius-md: 0.75rem;
+  --ui--radius-lg: 1.25rem;
+  --ui--radius-full: 9999px;
+
+  --ui--shadow-sm: 0 1px 2px hsl(222deg 45% 18% / 8%);
+  --ui--shadow-md: 0 2px 10px hsl(222deg 45% 18% / 10%);
+  --ui--shadow-lg: 0 12px 32px hsl(222deg 45% 18% / 16%);
+
+  --ui--header-height: 4rem;
+}
+
+/* -----------------------------------------------------------------------------
+   Base elements. Everything else belongs in a template as a utility class.
+   -------------------------------------------------------------------------- */
+
+* {
+  box-sizing: border-box;
+}
+
+/**
+ * Tailwind's preflight is off (it fights PrimeNG's own reset), and preflight is
+ * exactly what normally gives every element `border-style: solid` with a zero
+ * width. Without it, a class like `border`, `border-b` or `border-l-4` sets
+ * only a WIDTH — and CSS computes any border width to 0 while the style is
+ * still `none`. Every border utility in the app was therefore invisible, with
+ * the shadows quietly carrying the shape of cards and chips.
+ *
+ * This restores that one piece of preflight and nothing else. The selector has
+ * zero specificity, so PrimeNG's own `border: 1px solid ...` rules still win
+ * wherever a component sets its own.
+ */
+*,
+::before,
+::after {
+  border-style: solid;
+  border-width: 0;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  font-family: var(--ui--font-family-base);
+  color: hsl(var(--ui--color-ink));
+  background: hsl(var(--ui--color-surface));
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  overflow-x: hidden;
+}
+
+/**
+ * Headings inherit their colour so a section can flip the whole block to
+ * `text-ink-inverse` on a navy surface. Setting it here would win over that.
+ */
+h1,
+h2,
+h3,
+h4 {
+  font-family: var(--ui--font-family-heading);
+  color: inherit;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+/**
+ * O preflight do Tailwind está desligado (senão parte o reset do PrimeNG), por
+ * isso os nossos <button> ficariam com o fundo e o contorno por omissão do
+ * browser. Esta regra repõe-nos, mas ignora os botões do PrimeNG.
+ *
+ * O `:where()` não conta para a especificidade: o seletor vale o mesmo que um
+ * simples `button`, e por isso qualquer classe do Tailwind escrita no template
+ * continua a ganhar — incluindo os `hover:bg-*`.
+ */
+button:where(:not(.p-button):not(.p-element)) {
+  background-color: transparent;
+  border: 0;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+html {
+  color-scheme: dark;
+}
+
+/* Telemóveis com "notch": o conteúdo nunca fica debaixo da câmara. */
+body {
+  min-height: 100vh;
+  min-height: 100dvh;
+}
+
+::selection {
+  background: hsl(var(--ui--color-accent));
+  color: hsl(var(--ui--color-ink-on-accent));
+}

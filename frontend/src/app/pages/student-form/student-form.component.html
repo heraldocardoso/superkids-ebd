@@ -1,0 +1,415 @@
+<p-dialog
+  [header]="title()"
+  [visible]="visible()"
+  (visibleChange)="visible.set($event)"
+  [modal]="true"
+  [draggable]="false"
+  [resizable]="false"
+  [blockScroll]="true"
+  [dismissableMask]="false"
+  [style]="{ width: '48rem' }"
+  styleClass="ebd-sheet"
+>
+  @if (loading()) {
+    <p class="text-ink-muted">A carregar…</p>
+  } @else {
+    <div class="flex flex-col gap-4">
+      @if (error()) {
+        <p class="m-0 rounded-md border border-status-danger/40 bg-status-danger-faded px-3 py-2.5 text-sm font-bold text-status-danger" role="alert">
+          {{ error() }}
+        </p>
+      } @else if (!isNew() && missing().length) {
+        <p class="m-0 rounded-md border border-status-danger/40 bg-status-danger-faded px-3 py-2.5 text-sm font-bold text-status-danger">
+          Informação importante em falta: {{ missing().join(', ') }}.
+        </p>
+      }
+
+      @if (move(); as mv) {
+        <div class="flex flex-wrap items-center gap-x-3 gap-y-2 rounded-md border border-secondary/40 bg-secondary/10 px-3 py-2.5 text-sm font-bold text-secondary">
+          <i class="pi pi-arrow-up-right"></i>
+          <span class="min-w-0 flex-1">{{ mv.label }}. A liderança decide quando muda.</span>
+          @if (mv.suggested; as next) {
+            <p-button [label]="'Mudar para ' + next.name" size="small" [outlined]="true" (onClick)="moveTo(next.id)" />
+          }
+        </div>
+      }
+
+      @if (consent().status !== 'signed') {
+        <div class="flex flex-wrap items-center gap-x-3 gap-y-1 rounded-md border border-accent/40 bg-accent/10 px-3 py-2.5 text-sm font-bold text-accent">
+          <span>{{ consent().status === 'refused' ? 'Autorização de dados recusada pelo encarregado.' : 'Autorização de dados (RGPD) por recolher.' }}</span>
+          <button type="button" class="font-extrabold underline-offset-2 hover:underline" (click)="signatureOpen.set(true)">Assinar agora</button>
+          <button type="button" class="font-extrabold underline-offset-2 hover:underline" (click)="scrollToConsent()">Ver autorização</button>
+        </div>
+      }
+
+      <!-- ============================================================ CHILD -->
+      <fieldset class="m-0 flex min-w-0 flex-col gap-3 rounded-lg border border-border bg-surface-sunken p-3.5">
+        <legend class="px-2 font-heading text-[0.95rem] font-extrabold text-accent">Criança</legend>
+
+        <div class="grid grid-cols-[auto_minmax(0,1fr)] items-center gap-3.5">
+          <app-student-avatar
+            [studentId]="m.id"
+            [firstName]="m.firstName"
+            [lastName]="m.lastName"
+            [hasPhoto]="hasPhoto()"
+            [previewUrl]="photoPreview()"
+            [size]="88"
+            [highlight]="true"
+          />
+          <div class="flex min-w-0 flex-col gap-2.5 sm:grid sm:grid-cols-2 sm:gap-3">
+            <label class="flex min-w-0 flex-col gap-1.5">
+              <span class="text-xs font-extrabold uppercase tracking-wider text-ink-muted">Nome <b class="text-accent">*</b></span>
+              <input pInputText [(ngModel)]="m.firstName" (ngModelChange)="touch()" autocapitalize="words" autocomplete="off" class="w-full" />
+            </label>
+            <label class="flex min-w-0 flex-col gap-1.5">
+              <span class="text-xs font-extrabold uppercase tracking-wider text-ink-muted">Apelido <b class="text-accent">*</b></span>
+              <input pInputText [(ngModel)]="m.lastName" (ngModelChange)="touch()" autocapitalize="words" autocomplete="off" class="w-full" />
+            </label>
+          </div>
+        </div>
+
+        <div class="flex flex-wrap items-center gap-2">
+          <label
+            class="inline-flex min-h-[2.6rem] cursor-pointer items-center gap-2 rounded-md px-3.5 text-sm font-extrabold"
+            [class]="photoAllowed() ? 'bg-accent text-ink-on-accent' : 'pointer-events-none bg-surface-raised text-ink-muted opacity-40'"
+          >
+            <i class="pi pi-camera"></i> Tirar foto
+            <input type="file" accept="image/*" capture="environment" hidden [disabled]="!photoAllowed()" (change)="pickPhoto($event)" />
+          </label>
+          <label
+            class="inline-flex min-h-[2.6rem] cursor-pointer items-center gap-2 rounded-md border border-border bg-surface-raised px-3.5 text-sm font-extrabold"
+            [class.pointer-events-none]="!photoAllowed()"
+            [class.opacity-40]="!photoAllowed()"
+          >
+            <i class="pi pi-upload"></i> Carregar
+            <input type="file" accept="image/*" hidden [disabled]="!photoAllowed()" (change)="pickPhoto($event)" />
+          </label>
+          @if (hasPhoto() || photoPreview()) {
+            <p-button label="Remover" [text]="true" severity="danger" size="small" (onClick)="removePhoto()" />
+          }
+        </div>
+        @if (!photoAllowed()) {
+          <p class="m-0 rounded-md bg-accent/10 px-3 py-2 text-sm font-bold text-accent">
+            Sem autorização para fotografia: a ficha mostra as iniciais.
+          </p>
+        }
+
+        <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <label class="flex min-w-0 flex-col gap-1.5">
+            <span class="text-xs font-extrabold uppercase tracking-wider text-ink-muted">Data de nascimento <b class="text-accent">*</b></span>
+            <app-date-field [max]="todayIso" [value]="m.birthDate" (valueChange)="m.birthDate = $event; touch()" />
+          </label>
+          <label class="flex min-w-0 flex-col gap-1.5">
+            <span class="text-xs font-extrabold uppercase tracking-wider text-ink-muted">Turma</span>
+            <select class="min-h-[2.9rem] w-full rounded-md border border-border bg-surface-sunken px-3 text-base text-ink" [(ngModel)]="m.classId" (ngModelChange)="touch()">
+              <option [ngValue]="null">Sem turma</option>
+              @for (c of classes(); track c.id) {
+                <option [ngValue]="c.id">{{ c.name }}</option>
+              }
+            </select>
+          </label>
+          <label class="flex min-w-0 flex-col gap-1.5">
+            <span class="text-xs font-extrabold uppercase tracking-wider text-ink-muted">Também frequenta</span>
+            <select class="min-h-[2.9rem] w-full rounded-md border border-border bg-surface-sunken px-3 text-base text-ink" [(ngModel)]="m.secondClassId" (ngModelChange)="touch()">
+              <option [ngValue]="null">Nenhuma outra turma</option>
+              @for (c of classes(); track c.id) {
+                @if (c.id !== m.classId) {
+                  <option [ngValue]="c.id">{{ c.name }}</option>
+                }
+              }
+            </select>
+          </label>
+        </div>
+        <label class="flex flex-col gap-1.5">
+          <span class="text-xs font-extrabold uppercase tracking-wider text-ink-muted">Morada</span>
+          <input pInputText [(ngModel)]="m.address" class="w-full" />
+        </label>
+        <app-choice-pills question="Alfabetizado?" [options]="literacy" [(value)]="m.literate" />
+        <app-choice-pills question="Tem Bíblia?" [options]="hasBibleOptions" [(value)]="m.hasBible" />
+      </fieldset>
+
+      <!-- ===================================================== MOTHER / FATHER -->
+      @for (who of parents; track who.key) {
+        <fieldset class="m-0 flex min-w-0 flex-col gap-3 rounded-lg border border-border bg-surface-sunken p-3.5">
+          <legend class="px-2 font-heading text-[0.95rem] font-extrabold text-accent">{{ who.label }} <b>*</b></legend>
+          <label class="inline-flex min-h-[2.6rem] cursor-pointer items-center gap-2 self-start rounded-full border-[1.5px] border-border bg-surface-raised px-3.5 font-bold text-ink-muted">
+            <p-checkbox [binary]="true" [ngModel]="m[who.key].notApplicable" (ngModelChange)="setParentNotApplicable(who.key, $event)" />
+            Não aplicável
+          </label>
+          @if (!m[who.key].notApplicable) {
+            <div class="grid grid-cols-1 gap-3 sm:grid-cols-3">
+              <label class="flex min-w-0 flex-col gap-1.5">
+                <span class="text-xs font-extrabold uppercase tracking-wider text-ink-muted">Nome</span>
+                <input pInputText [(ngModel)]="m[who.key].name" (ngModelChange)="touch()" autocapitalize="words" class="w-full" />
+              </label>
+              <label class="flex min-w-0 flex-col gap-1.5">
+                <span class="text-xs font-extrabold uppercase tracking-wider text-ink-muted">Contacto</span>
+                <input pInputText type="tel" inputmode="tel" [(ngModel)]="m[who.key].contact" (ngModelChange)="touch()" class="w-full" />
+              </label>
+              <label class="flex min-w-0 flex-col gap-1.5">
+                <span class="text-xs font-extrabold uppercase tracking-wider text-ink-muted">Instagram</span>
+                <input pInputText autocapitalize="off" [(ngModel)]="m[who.key].instagram" class="w-full" />
+              </label>
+            </div>
+          }
+        </fieldset>
+      }
+
+      <!-- =========================================================== GUARDIAN -->
+      <fieldset class="m-0 flex min-w-0 flex-col gap-3 rounded-lg border border-border bg-surface-sunken p-3.5">
+        <legend class="px-2 font-heading text-[0.95rem] font-extrabold text-accent">Encarregado de educação <b>*</b></legend>
+        <app-choice-pills [options]="guardianOptions()" [(value)]="m.guardian" (valueChange)="touch()" />
+        @if (guardianInfo().length) {
+          <div class="rounded-md border border-border bg-surface-raised px-3 py-2.5 text-sm leading-relaxed">
+            <small class="block text-[0.7rem] font-extrabold uppercase tracking-wider text-ink-muted">Usa os dados preenchidos acima</small>
+            @for (line of guardianInfo(); track $index) {
+              <b class="block">{{ line }}</b>
+            }
+          </div>
+        }
+        @if (m.guardian === 'other') {
+          <div class="grid grid-cols-1 gap-3 sm:grid-cols-3">
+            <label class="flex min-w-0 flex-col gap-1.5">
+              <span class="text-xs font-extrabold uppercase tracking-wider text-ink-muted">Nome <b class="text-accent">*</b></span>
+              <input pInputText [(ngModel)]="m.otherGuardian.name" (ngModelChange)="touch()" autocapitalize="words" class="w-full" />
+            </label>
+            <label class="flex min-w-0 flex-col gap-1.5">
+              <span class="text-xs font-extrabold uppercase tracking-wider text-ink-muted">Parentesco</span>
+              <input pInputText [(ngModel)]="m.otherGuardian.relation" placeholder="avó, tio" class="w-full" />
+            </label>
+            <label class="flex min-w-0 flex-col gap-1.5">
+              <span class="text-xs font-extrabold uppercase tracking-wider text-ink-muted">Contacto</span>
+              <input pInputText type="tel" inputmode="tel" [(ngModel)]="m.otherGuardian.contact" class="w-full" />
+            </label>
+          </div>
+        }
+        <app-choice-pills question="Mora com os pais?" [options]="yesNo" [(value)]="m.family.livesWithParents" />
+      </fieldset>
+
+      <!-- ============================================================= HEALTH -->
+      <fieldset class="m-0 flex min-w-0 flex-col gap-3 rounded-lg border border-border bg-surface-sunken p-3.5">
+        <legend class="px-2 font-heading text-[0.95rem] font-extrabold text-accent">Saúde e cuidados</legend>
+        @if (!healthAllowed()) {
+          <div class="flex flex-wrap items-center gap-x-3 gap-y-1 rounded-md bg-accent/10 px-3 py-2 text-sm font-bold text-accent">
+            <span>Sem autorização para dados de saúde: estes campos ficam vazios. Peça ao encarregado que avise a professora de alergias ou cuidados.</span>
+            @if (consent().status !== 'signed') {
+              <button type="button" class="font-extrabold underline-offset-2 hover:underline" (click)="signatureOpen.set(true)">Assinar agora</button>
+            }
+          </div>
+        }
+        <app-choice-pills question="Restrição ou intolerância alimentar?" [options]="noYes" [disabled]="!healthAllowed()" [(value)]="m.health.dietaryRestriction" />
+        @if (m.health.dietaryRestriction && healthAllowed()) {
+          <label class="flex flex-col gap-1.5">
+            <span class="text-xs font-extrabold uppercase tracking-wider text-ink-muted">Qual?</span>
+            <input pInputText [(ngModel)]="m.health.dietaryDetail" class="w-full" />
+          </label>
+        }
+        <app-choice-pills question="Possui alergia?" [options]="noYes" [disabled]="!healthAllowed()" [(value)]="m.health.allergy" />
+        @if (m.health.allergy && healthAllowed()) {
+          <label class="flex flex-col gap-1.5">
+            <span class="text-xs font-extrabold uppercase tracking-wider text-ink-muted">Qual?</span>
+            <input pInputText [(ngModel)]="m.health.allergyDetail" class="w-full" />
+          </label>
+        }
+        <app-choice-pills question="Toma medicação regularmente?" [options]="noYes" [disabled]="!healthAllowed()" [(value)]="m.health.medication" />
+        @if (m.health.medication && healthAllowed()) {
+          <label class="flex flex-col gap-1.5">
+            <span class="text-xs font-extrabold uppercase tracking-wider text-ink-muted">Qual e quando?</span>
+            <input pInputText [(ngModel)]="m.health.medicationDetail" class="w-full" />
+          </label>
+        }
+        <app-choice-pills question="Tem necessidades especiais?" [options]="noYes" [disabled]="!healthAllowed()" [(value)]="m.health.specialNeeds" />
+        @if (m.health.specialNeeds && healthAllowed()) {
+          <label class="flex flex-col gap-1.5">
+            <span class="text-xs font-extrabold uppercase tracking-wider text-ink-muted">Descreva</span>
+            <textarea pInputTextarea rows="3" [(ngModel)]="m.health.specialNeedsDetail" class="w-full"></textarea>
+          </label>
+        }
+        <app-choice-pills question="Perturbação do espetro do autismo?" [options]="noYes" [disabled]="!healthAllowed()" [(value)]="m.health.autism" />
+      </fieldset>
+
+      <!-- ============================================================= FAMILY -->
+      <fieldset class="m-0 flex min-w-0 flex-col gap-3 rounded-lg border border-border bg-surface-sunken p-3.5">
+        <legend class="px-2 font-heading text-[0.95rem] font-extrabold text-accent">Família e escola</legend>
+        <div class="flex flex-wrap items-center gap-2">
+          <span class="basis-full font-bold sm:mr-1.5 sm:flex-1 sm:basis-56">Pais cristãos?</span>
+          <label class="inline-flex min-h-[2.6rem] cursor-pointer items-center gap-2 rounded-full border-[1.5px] border-border bg-surface-raised px-3.5 font-bold text-ink-muted">
+            <p-checkbox [binary]="true" [(ngModel)]="m.family.motherChristian" /> Mãe
+          </label>
+          <label class="inline-flex min-h-[2.6rem] cursor-pointer items-center gap-2 rounded-full border-[1.5px] border-border bg-surface-raised px-3.5 font-bold text-ink-muted">
+            <p-checkbox [binary]="true" [(ngModel)]="m.family.fatherChristian" /> Pai
+          </label>
+        </div>
+        <label class="flex flex-col gap-1.5">
+          <span class="text-xs font-extrabold uppercase tracking-wider text-ink-muted">Caso não, qual religião?</span>
+          <input pInputText [(ngModel)]="m.family.religion" class="w-full" />
+        </label>
+        <app-choice-pills question="Já recebeu notificações da escola sobre aprendizagem ou comportamento?" [options]="noYes" [(value)]="m.family.schoolNotice" />
+        @if (m.family.schoolNotice) {
+          <label class="flex flex-col gap-1.5">
+            <span class="text-xs font-extrabold uppercase tracking-wider text-ink-muted">Motivo</span>
+            <input pInputText [(ngModel)]="m.family.schoolNoticeReason" class="w-full" />
+          </label>
+        }
+        <app-choice-pills question="Possui irmãos?" [options]="noYes" [(value)]="m.family.siblings" />
+        @if (m.family.siblings) {
+          <label class="flex flex-col gap-1.5">
+            <span class="text-xs font-extrabold uppercase tracking-wider text-ink-muted">Nome e idade dos irmãos</span>
+            <input pInputText [(ngModel)]="m.family.siblingsDetail" class="w-full" />
+          </label>
+        }
+        <label class="flex flex-col gap-1.5">
+          <span class="text-xs font-extrabold uppercase tracking-wider text-ink-muted">Notas</span>
+          <textarea pInputTextarea rows="3" [(ngModel)]="m.family.notes" class="w-full"></textarea>
+        </label>
+      </fieldset>
+
+      <!-- ============================================================ CONSENT -->
+      <fieldset id="consent-section" class="m-0 flex min-w-0 scroll-mt-4 flex-col gap-3 rounded-lg border border-border bg-surface-sunken p-3.5">
+        <legend class="px-2 font-heading text-[0.95rem] font-extrabold text-accent">Autorização de dados (RGPD)</legend>
+
+        @if (showSummary()) {
+          <div class="flex items-start gap-3">
+            <span class="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-status-success text-ink-on-accent">
+              <i class="pi pi-check font-black"></i>
+            </span>
+            <div class="flex min-w-0 flex-col gap-1.5">
+              <b>Autorização assinada</b>
+              <span class="text-sm text-ink-muted">{{ consentLine() }}</span>
+              <span class="flex flex-wrap gap-1.5">
+                <span class="rounded-full border border-status-success/35 bg-status-success/15 px-2.5 py-0.5 text-xs font-extrabold text-status-success">Dados: sim</span>
+                <span class="rounded-full border px-2.5 py-0.5 text-xs font-extrabold"
+                  [class]="consent().health ? 'border-status-success/35 bg-status-success/15 text-status-success' : 'border-status-danger/35 bg-status-danger/15 text-status-danger'">
+                  Saúde: {{ consent().health ? 'sim' : 'não' }}
+                </span>
+                <span class="rounded-full border px-2.5 py-0.5 text-xs font-extrabold"
+                  [class]="consent().photo ? 'border-status-success/35 bg-status-success/15 text-status-success' : 'border-status-danger/35 bg-status-danger/15 text-status-danger'">
+                  Foto: {{ consent().photo ? 'sim' : 'não' }}
+                </span>
+              </span>
+            </div>
+          </div>
+          <div class="flex flex-wrap gap-2">
+            <p-button label="Descarregar comprovativo" icon="pi pi-download" size="small" (onClick)="downloadReceipt()" />
+            <p-button label="Alterar" [text]="true" size="small" (onClick)="consentEditing.set(true)" />
+          </div>
+        } @else {
+          <app-choice-pills question="Autorização do encarregado" [options]="statuses" [value]="consent().status" (valueChange)="setStatus($event)" />
+
+          @if (consent().status !== 'signed') {
+            <p-button label="Assinar agora neste aparelho" icon="pi pi-pencil" severity="warning" styleClass="self-start" (onClick)="signatureOpen.set(true)" />
+          }
+
+          @if (consent().status === 'refused') {
+            <p class="m-0 rounded-md bg-accent/10 px-3 py-2 text-sm font-bold text-accent">
+              Autorização recusada: a ficha não guarda dados de saúde nem fotografia. Fale com a coordenação sobre os restantes dados.
+            </p>
+          }
+
+          @if (consent().status === 'signed') {
+            <app-choice-pills question="Como foi assinada?" [options]="methods" [value]="consent().method" (valueChange)="setMethod($event)" />
+
+            @if (consent().method === 'online') {
+              <p class="m-0 text-sm text-ink-muted">
+                Na folha de respostas do Google Forms, procure o nome da criança e copie a data e a hora da resposta (coluna “Carimbo de data/hora”).
+              </p>
+            }
+
+            <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              <label class="flex min-w-0 flex-col gap-1.5">
+                <span class="text-xs font-extrabold uppercase tracking-wider text-ink-muted">Data da assinatura</span>
+                <app-date-field [max]="todayIso" [value]="m.consent.date" (valueChange)="m.consent.date = $event; touch()" />
+              </label>
+              <label class="flex min-w-0 flex-col gap-1.5">
+                <span class="text-xs font-extrabold uppercase tracking-wider text-ink-muted">Assinada por</span>
+                <input pInputText [(ngModel)]="m.consent.signedBy" (ngModelChange)="touch()" placeholder="Nome do encarregado" autocapitalize="words" class="w-full" />
+              </label>
+              @if (consent().method === 'online') {
+                <label class="flex min-w-0 flex-col gap-1.5">
+                  <span class="text-xs font-extrabold uppercase tracking-wider text-ink-muted">Hora da resposta</span>
+                  <input pInputText type="time" [(ngModel)]="m.consent.time" (ngModelChange)="touch()" class="w-full" />
+                </label>
+                <label class="flex min-w-0 flex-col gap-1.5">
+                  <span class="text-xs font-extrabold uppercase tracking-wider text-ink-muted">Email usado no formulário</span>
+                  <input pInputText type="email" inputmode="email" autocapitalize="off" [(ngModel)]="m.consent.email" placeholder="nome@exemplo.pt" class="w-full" />
+                </label>
+              }
+            </div>
+
+            <div class="flex flex-wrap items-center gap-2">
+              <span class="basis-full font-bold sm:mr-1.5 sm:flex-1 sm:basis-56">Autorizou também</span>
+              <label class="inline-flex min-h-[2.6rem] cursor-pointer items-center gap-2 rounded-full border-[1.5px] border-border bg-surface-raised px-3.5 font-bold text-ink-muted">
+                <p-checkbox [binary]="true" [(ngModel)]="m.consent.health" (ngModelChange)="touch()" /> Dados de saúde e cuidados
+              </label>
+              <label class="inline-flex min-h-[2.6rem] cursor-pointer items-center gap-2 rounded-full border-[1.5px] border-border bg-surface-raised px-3.5 font-bold text-ink-muted">
+                <p-checkbox [binary]="true" [(ngModel)]="m.consent.photo" (ngModelChange)="touch()" /> Fotografia na ficha
+              </label>
+            </div>
+
+            @if (consent().method === 'paper' || consent().method === 'online') {
+              <div class="flex flex-col gap-2">
+                <span class="text-xs font-extrabold uppercase tracking-wider text-ink-muted">
+                  {{ consent().method === 'online' ? 'Comprovativo da resposta (captura de ecrã, opcional)' : 'Foto do papel assinado' }}
+                </span>
+                @if (receiptPending() || m.hasReceipt) {
+                  <div class="flex flex-wrap items-center gap-2 text-sm">
+                    <span class="font-extrabold text-status-success">✓ {{ consent().method === 'online' ? 'Comprovativo anexado' : 'Foto do papel anexada' }}</span>
+                    <p-button label="Remover" [text]="true" severity="danger" size="small" (onClick)="removeReceipt()" />
+                  </div>
+                } @else {
+                  <p class="m-0 text-sm text-ink-muted">{{ consent().method === 'online' ? 'Sem comprovativo.' : 'Ainda sem foto do papel.' }}</p>
+                }
+                <div class="flex flex-wrap gap-2">
+                  @if (consent().method === 'paper') {
+                    <label class="inline-flex min-h-[2.6rem] cursor-pointer items-center gap-2 rounded-md border border-border bg-surface-raised px-3.5 text-sm font-extrabold">
+                      <i class="pi pi-camera"></i> Fotografar papel
+                      <input type="file" accept="image/*" capture="environment" hidden (change)="pickReceipt($event)" />
+                    </label>
+                  }
+                  <label class="inline-flex min-h-[2.6rem] cursor-pointer items-center gap-2 rounded-md border border-border bg-surface-raised px-3.5 text-sm font-extrabold">
+                    <i class="pi pi-upload"></i> Carregar
+                    <input type="file" accept="image/*" hidden (change)="pickReceipt($event)" />
+                  </label>
+                </div>
+              </div>
+            }
+
+            @if (consent().method === 'app') {
+              <p class="m-0 text-sm font-bold" [class]="signaturePending() || m.hasSignature ? 'text-status-success' : 'text-ink-muted'">
+                {{ signaturePending() || m.hasSignature ? '✓ Assinatura guardada' + (consent().time ? ' · ' + consent().time : '') : 'Sem assinatura guardada.' }}
+              </p>
+            }
+          }
+        }
+      </fieldset>
+
+      @if (!isNew()) {
+        @if (confirmDelete()) {
+          <div class="flex flex-wrap items-center gap-2 rounded-md bg-status-danger-faded px-3 py-2.5 text-sm">
+            <span class="flex-1">Eliminar esta ficha e as presenças deste aluno?</span>
+            <p-button label="Eliminar" severity="danger" size="small" (onClick)="remove()" />
+            <p-button label="Não" [text]="true" size="small" (onClick)="confirmDelete.set(false)" />
+          </div>
+        } @else {
+          <p-button label="Eliminar aluno" [text]="true" severity="danger" styleClass="self-start" (onClick)="confirmDelete.set(true)" />
+        }
+      }
+    </div>
+  }
+
+  <ng-template pTemplate="footer">
+    <div class="flex w-full flex-wrap justify-end gap-2">
+      <p-button label="Cancelar" [text]="true" (onClick)="visible.set(false)" />
+      <p-button label="Guardar ficha" icon="pi pi-check" severity="warning" [loading]="saving()" styleClass="max-md:flex-1" (onClick)="save()" />
+    </div>
+  </ng-template>
+</p-dialog>
+
+<app-signature-dialog
+  [visible]="signatureOpen()"
+  (visibleChange)="signatureOpen.set($event)"
+  [childName]="title()"
+  [defaultSigner]="signerDefault()"
+  [defaultRelation]="relationDefault()"
+  (confirmed)="onSigned($event)"
+/>

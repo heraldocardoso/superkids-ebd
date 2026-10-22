@@ -1,0 +1,11 @@
+/* Design tokens and base element styles. `@use` rules must come first. */
+@use 'theme/main.theme';
+
+/* PrimeNG repainted with those tokens — the Louvor rules, then the EBD dark layer. */
+@use 'theme/primeng';
+@use 'theme/primeng-ebd';
+
+/* Tailwind layers. Utilities last so they win over PrimeNG's component CSS. */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;

@@ -1,0 +1,375 @@
+/* =============================================================================
+   PrimeNG — camada escura da EBD
+   `_primeng.scss` é o ficheiro da Escola de Louvor, tal como está. Foi pensado
+   para superfícies claras: aqui só se acerta o que, sobre o navy, deixava de
+   se ler (texto navy em fundo navy) e o amarelo passa a ser o "selecionado".
+   ========================================================================== */
+
+/* ------------------------------------------------------------------ BUTTONS
+   Por omissão: botão de superfície, contorno discreto, texto branco. */
+.p-button {
+  background: hsl(var(--ui--color-surface-raised));
+  border-color: hsl(var(--ui--color-border));
+  color: hsl(var(--ui--color-ink));
+  border-radius: var(--ui--radius-md);
+  font-weight: 800;
+
+  &:enabled:hover,
+  &:not(:disabled):hover {
+    background: hsl(var(--ui--color-border));
+    border-color: hsl(var(--ui--color-border-strong));
+    color: hsl(var(--ui--color-ink));
+  }
+
+  &.p-button-outlined,
+  &.p-button-text {
+    color: hsl(var(--ui--color-ink));
+
+    &:not(:disabled):hover {
+      background: hsl(var(--ui--color-ink) / 8%);
+      color: hsl(var(--ui--color-ink));
+    }
+  }
+}
+
+/* O botão amarelo nunca fica cinzento no hover: escurece um pouco. */
+.p-button-warning {
+  &.p-button,
+  > .p-button {
+    &:not(:disabled):hover {
+      background: hsl(var(--ui--color-accent-medium));
+      border-color: hsl(var(--ui--color-accent-medium));
+    }
+  }
+}
+
+.p-button-success {
+  &.p-button,
+  > .p-button {
+    color: hsl(var(--ui--color-primary-dark));
+  }
+}
+
+/* ------------------------------------------------------------------- INPUTS */
+
+.p-inputtext,
+.p-dropdown,
+.p-password-input {
+  background: hsl(var(--ui--color-surface-sunken));
+  border-color: hsl(var(--ui--color-border));
+  color: hsl(var(--ui--color-ink));
+  border-radius: var(--ui--radius-md);
+  /* 16px: abaixo disto o iPhone faz zoom ao tocar no campo. */
+  font-size: 1rem;
+
+  &:enabled:focus,
+  &:not(.p-disabled).p-focus {
+    border-color: hsl(var(--ui--color-accent));
+    box-shadow: 0 0 0 0.2rem hsl(var(--ui--color-accent) / 25%);
+  }
+}
+
+.p-password .p-password-show-icon,
+.p-password .p-password-hide-icon,
+.p-dropdown .p-dropdown-trigger {
+  color: hsl(var(--ui--color-ink-muted));
+}
+
+.p-dropdown-panel {
+  background: hsl(var(--ui--color-surface-raised));
+  border-color: hsl(var(--ui--color-border));
+
+  .p-dropdown-item {
+    color: hsl(var(--ui--color-ink));
+
+    &:not(.p-highlight):not(.p-disabled):hover {
+      background: hsl(var(--ui--color-border));
+      color: hsl(var(--ui--color-ink));
+    }
+
+    &.p-highlight {
+      background: hsl(var(--ui--color-accent));
+      color: hsl(var(--ui--color-ink-on-accent));
+    }
+  }
+}
+
+.p-checkbox .p-checkbox-box,
+.p-radiobutton .p-radiobutton-box {
+  background: hsl(var(--ui--color-surface-sunken));
+  border-color: hsl(var(--ui--color-border-strong));
+
+  &.p-highlight {
+    background: hsl(var(--ui--color-accent));
+    border-color: hsl(var(--ui--color-accent));
+
+    .p-checkbox-icon,
+    .p-radiobutton-icon {
+      color: hsl(var(--ui--color-ink-on-accent));
+    }
+
+    &:not(.p-disabled):hover {
+      background: hsl(var(--ui--color-accent-medium));
+      border-color: hsl(var(--ui--color-accent-medium));
+    }
+  }
+}
+
+/* ------------------------------------------------------------------ OVERLAY */
+
+.p-dialog {
+  .p-dialog-header,
+  .p-dialog-content,
+  .p-dialog-footer {
+    background: hsl(var(--ui--color-surface-raised));
+    color: hsl(var(--ui--color-ink));
+    border-color: hsl(var(--ui--color-border));
+  }
+
+  .p-dialog-header .p-dialog-header-icon {
+    color: hsl(var(--ui--color-ink-muted));
+
+    &:hover {
+      background: hsl(var(--ui--color-border));
+      color: hsl(var(--ui--color-ink));
+    }
+  }
+}
+
+/**
+ * Folhas de ecrã inteiro (ficha do aluno, assinatura): no telemóvel ocupam
+ * o ecrã todo, como uma página; a partir do tablet são uma janela.
+ */
+.ebd-sheet.p-dialog {
+  @media (max-width: 767px) {
+    width: 100vw !important;
+    max-width: 100vw;
+    height: 100dvh;
+    max-height: 100dvh;
+    margin: 0;
+    border-radius: 0;
+
+    .p-dialog-header {
+      border-radius: 0;
+      padding-top: calc(1rem + env(safe-area-inset-top, 0px));
+    }
+
+    .p-dialog-content {
+      flex: 1;
+    }
+
+    .p-dialog-footer {
+      border-radius: 0;
+      padding-bottom: calc(0.75rem + env(safe-area-inset-bottom, 0px));
+    }
+  }
+
+  .p-dialog-content {
+    overscroll-behavior: contain;
+  }
+}
+
+.p-overlaypanel {
+  background: hsl(var(--ui--color-surface-raised));
+  border: 1px solid hsl(var(--ui--color-border));
+  color: hsl(var(--ui--color-ink));
+  border-radius: var(--ui--radius-md);
+  box-shadow: 0 14px 36px hsl(var(--ui--color-primary-darkest) / 60%);
+
+  &::before {
+    border-bottom-color: hsl(var(--ui--color-border));
+  }
+
+  &::after {
+    border-bottom-color: hsl(var(--ui--color-surface-raised));
+  }
+
+  &.p-overlaypanel-flipped::after {
+    border-top-color: hsl(var(--ui--color-surface-raised));
+  }
+
+  .p-overlaypanel-content {
+    padding: 0.75rem;
+  }
+}
+
+.p-confirm-dialog .p-confirm-dialog-message {
+  color: hsl(var(--ui--color-ink));
+}
+
+/* -------------------------------------------------------------------- TOAST
+   Fundo escuro com a barra colorida à esquerda; o texto é sempre branco.
+   Acima da barra de navegação do telemóvel. */
+.p-toast {
+  @media (max-width: 1023px) {
+    &.p-toast-bottom-center {
+      bottom: calc(5.5rem + env(safe-area-inset-bottom, 0px));
+    }
+  }
+
+  .p-toast-message {
+    background: hsl(var(--ui--color-surface-raised));
+
+    .p-toast-message-content {
+      color: hsl(var(--ui--color-ink));
+    }
+
+    .p-toast-icon-close {
+      color: hsl(var(--ui--color-ink-muted));
+    }
+
+    &.p-toast-message-info {
+      background: hsl(var(--ui--color-status-info-faded));
+      border-left-color: hsl(var(--ui--color-status-info));
+
+      .p-toast-message-icon {
+        color: hsl(var(--ui--color-status-info));
+      }
+    }
+  }
+}
+
+/* -------------------------------------------------------------------- TABLE */
+
+.p-datatable {
+  .p-datatable-thead > tr > th {
+    background: hsl(var(--ui--color-surface-raised));
+    border-color: hsl(var(--ui--color-border));
+    color: hsl(var(--ui--color-accent));
+    font-size: 0.75rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  .p-datatable-tbody > tr {
+    background: hsl(var(--ui--color-surface-raised));
+    color: hsl(var(--ui--color-ink));
+
+    > td {
+      border-color: hsl(var(--ui--color-border));
+    }
+
+    &:not(.p-highlight):hover {
+      background: hsl(var(--ui--color-border) / 60%);
+    }
+  }
+}
+
+@media screen and (max-width: 768px) {
+  .p-datatable .p-datatable-tbody > tr {
+    border-color: hsl(var(--ui--color-border));
+  }
+}
+
+.p-tag.p-tag-success {
+  color: hsl(var(--ui--color-primary-dark));
+}
+
+.p-tag.p-tag-secondary {
+  background: hsl(var(--ui--color-border));
+  color: hsl(var(--ui--color-ink));
+}
+
+.p-tooltip .p-tooltip-text {
+  background: hsl(var(--ui--color-surface-raised));
+  color: hsl(var(--ui--color-ink));
+  border: 1px solid hsl(var(--ui--color-border));
+}
+
+/* ---------------------------------------------------------- DATE PICKER (dark) */
+
+.p-calendar {
+  width: 100%;
+
+  .p-datepicker-trigger-icon,
+  .p-datepicker-icon {
+    color: hsl(var(--ui--color-ink-muted));
+  }
+}
+
+.p-datepicker.ebd-datepicker {
+  background: hsl(var(--ui--color-surface-raised));
+  border-color: hsl(var(--ui--color-border));
+  color: hsl(var(--ui--color-ink));
+  padding: 0.5rem;
+  max-width: calc(100vw - 1rem);
+
+  .p-datepicker-header {
+    background: transparent;
+    color: hsl(var(--ui--color-ink));
+
+    .p-datepicker-title button {
+      color: hsl(var(--ui--color-ink));
+      font-weight: 800;
+      text-transform: capitalize;
+
+      &:hover {
+        color: hsl(var(--ui--color-accent));
+      }
+    }
+
+    .p-datepicker-prev,
+    .p-datepicker-next {
+      color: hsl(var(--ui--color-ink-muted));
+
+      &:enabled:hover {
+        background: hsl(var(--ui--color-border));
+        color: hsl(var(--ui--color-ink));
+      }
+    }
+  }
+
+  table th > span {
+    color: hsl(var(--ui--color-ink-muted));
+    font-weight: 800;
+  }
+
+  table td > span,
+  .p-monthpicker .p-monthpicker-month,
+  .p-yearpicker .p-yearpicker-year {
+    color: hsl(var(--ui--color-ink));
+
+    &.p-disabled {
+      opacity: 0.3;
+    }
+
+    &:not(.p-highlight):not(.p-disabled):hover {
+      background: hsl(var(--ui--color-border));
+    }
+
+    &.p-highlight {
+      background: hsl(var(--ui--color-accent));
+      color: hsl(var(--ui--color-ink-on-accent));
+      font-weight: 800;
+    }
+  }
+
+  table td.p-datepicker-today > span:not(.p-highlight) {
+    background: transparent;
+    color: hsl(var(--ui--color-accent));
+    box-shadow: inset 0 0 0 1.5px hsl(var(--ui--color-accent));
+    font-weight: 800;
+  }
+
+  .p-monthpicker .p-monthpicker-month {
+    text-transform: capitalize;
+  }
+}
+
+/* Chrome paints autofilled fields light blue/white; keep them dark. */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus {
+  -webkit-text-fill-color: hsl(var(--ui--color-ink));
+  -webkit-box-shadow: 0 0 0 1000px hsl(var(--ui--color-surface-sunken)) inset;
+  caret-color: hsl(var(--ui--color-ink));
+  transition: background-color 9999s ease-out 0s;
+}
+
+/* Toasts and confirm dialogs are fixed overlays: their host tags must not take
+   a slot in the page's flex column (that added an empty gap at the top). */
+p-toast,
+p-confirmdialog,
+router-outlet {
+  display: contents;
+}

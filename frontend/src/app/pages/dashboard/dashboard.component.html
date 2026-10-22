@@ -1,0 +1,228 @@
+<section class="flex flex-col gap-3 pb-1 pt-1">
+  <span class="self-start rounded-full border border-accent/55 bg-accent/10 px-3.5 py-1.5 text-[0.7rem] font-extrabold uppercase tracking-[0.14em] text-accent">
+    ★ {{ t().pill }}
+  </span>
+  <h1 class="m-0 text-[2rem] font-black leading-[1.05] sm:text-[2.6rem]">
+    {{ t().headlineStart }}
+    <span class="text-accent underline decoration-accent/45 decoration-[5px] underline-offset-[7px]">{{ t().headlineHighlight }}</span>.
+  </h1>
+  <p class="m-0 text-ink-muted">{{ todayLabel }}</p>
+</section>
+
+@if (failed()) {
+  <p class="m-0 rounded-md border border-status-danger/40 bg-status-danger-faded p-4 text-sm font-bold text-status-danger">
+    {{ t().genericError }}
+  </p>
+}
+
+@if (data(); as d) {
+  @if (!d.byClass.length) {
+    <p-button [label]="t().createClasses" icon="pi pi-plus" severity="warning" styleClass="self-start" (onClick)="goToClasses()" />
+  }
+
+  <!-- KPIs -->
+  <div class="grid grid-cols-3 gap-2.5 sm:gap-3">
+    <div class="rounded-lg border border-border bg-surface-raised p-3 sm:p-4">
+      <b class="block font-heading text-[1.75rem] font-black leading-none text-status-success sm:text-4xl">{{ selectedTotals().present }}</b>
+      <span class="mt-1.5 block text-xs font-bold leading-tight text-ink-muted sm:text-sm">
+        {{ d.selectedDay ? t().presentOn + ' ' + short(d.selectedDay) : t().present }}
+      </span>
+    </div>
+    <div class="rounded-lg border border-border bg-surface-raised p-3 sm:p-4">
+      <b class="block font-heading text-[1.75rem] font-black leading-none text-accent sm:text-4xl">{{ selectedTotals().withBible }}</b>
+      <span class="mt-1.5 block text-xs font-bold leading-tight text-ink-muted sm:text-sm">{{ t().withBible }}</span>
+    </div>
+    <div class="rounded-lg border border-border bg-surface-raised p-3 sm:p-4">
+      <b class="block font-heading text-[1.75rem] font-black leading-none sm:text-4xl">{{ d.enrolled }}</b>
+      <span class="mt-1.5 block text-xs font-bold leading-tight text-ink-muted sm:text-sm">{{ t().enrolled }}</span>
+    </div>
+  </div>
+
+  @if (d.pendingConsents) {
+    <div class="flex flex-wrap items-center gap-x-2 gap-y-1 rounded-lg border-[1.5px] border-accent/60 bg-surface-raised px-4 py-3 text-sm">
+      <span><b>{{ d.pendingConsents }}</b> {{ d.pendingConsents === 1 ? t().pendingConsentsOne : t().pendingConsents }}</span>
+      <button type="button" class="font-extrabold text-accent" (click)="goToStudents('consent')">{{ t().seeStudents }}</button>
+    </div>
+  }
+  @if (toMove()) {
+    <div class="flex flex-wrap items-center gap-x-2 gap-y-1 rounded-lg border-[1.5px] border-secondary/60 bg-surface-raised px-4 py-3 text-sm">
+      <span><i class="pi pi-arrow-up-right mr-1.5 text-xs text-secondary"></i><b>{{ toMove() }}</b> {{ toMove() === 1 ? t().toMoveOne : t().toMove }}</span>
+      <button type="button" class="font-extrabold text-secondary" (click)="goToStudents('moveClass')">{{ t().seeStudents }}</button>
+    </div>
+  }
+  @if (d.incompleteForms) {
+    <div class="flex flex-wrap items-center gap-x-2 gap-y-1 rounded-lg border-[1.5px] border-accent/60 bg-surface-raised px-4 py-3 text-sm">
+      <span><b>{{ d.incompleteForms }}</b> {{ d.incompleteForms === 1 ? t().incompleteFormsOne : t().incompleteForms }}</span>
+      <button type="button" class="font-extrabold text-accent" (click)="goToStudents('incomplete')">{{ t().seeStudents }}</button>
+    </div>
+  }
+
+  <div class="grid grid-cols-1 gap-4 min-[900px]:grid-cols-[1.4fr_1fr]">
+    <!-- Attendance over time -->
+    <section class="flex min-w-0 flex-col gap-3 rounded-lg border border-border bg-surface-raised p-4">
+      <div class="flex flex-wrap items-center justify-between gap-2">
+        <h2 class="m-0 text-lg font-extrabold">{{ t().attendance }}</h2>
+        <div class="flex flex-wrap gap-3 text-xs font-bold text-ink-muted">
+          <span class="flex items-center gap-1.5"><i class="inline-block h-1 w-3.5 rounded bg-status-success"></i>{{ t().totalPresent }}</span>
+          <span class="flex items-center gap-1.5"><i class="inline-block h-1 w-3.5 rounded bg-accent"></i>{{ t().ofThemBible }}</span>
+        </div>
+      </div>
+      @if (chart(); as c) {
+        <svg class="block h-auto w-full" [attr.viewBox]="'0 0 ' + c.width + ' ' + c.height" role="img" [attr.aria-label]="t().attendance">
+          @for (g of c.grid; track g.value) {
+            <line [attr.x1]="30" [attr.x2]="c.width - 14" [attr.y1]="g.y" [attr.y2]="g.y" class="stroke-border" stroke-width="1" />
+            <text [attr.x]="22" [attr.y]="g.y + 4" text-anchor="end" class="fill-ink-muted text-[12px] font-bold">{{ g.value }}</text>
+          }
+          @if (c.area) {
+            <path [attr.d]="c.area" class="fill-status-success/15" />
+          }
+          <path [attr.d]="c.presentPath" fill="none" class="stroke-status-success" stroke-width="3" />
+          <path [attr.d]="c.biblePath" fill="none" class="stroke-accent" stroke-width="2.5" stroke-dasharray="6 5" />
+          @for (p of c.points; track $index; let last = $last) {
+            <circle [attr.cx]="p.x" [attr.cy]="p.yBible" r="4" class="fill-accent" />
+            <circle [attr.cx]="p.x" [attr.cy]="p.yPresent" [attr.r]="last ? 7 : 5" class="fill-surface-raised stroke-status-success" stroke-width="3" />
+            @if (p.showLabel) {
+              <text [attr.x]="p.x" [attr.y]="c.height - 8" text-anchor="middle" class="fill-ink-muted text-[12px] font-bold">{{ p.label }}</text>
+            }
+          }
+          <text
+            [attr.x]="c.last.x"
+            [attr.y]="c.last.yPresent - 14"
+            [attr.text-anchor]="c.points.length > 1 ? 'end' : 'middle'"
+            class="fill-status-success text-[16px] font-extrabold"
+          >{{ c.last.value }}</text>
+        </svg>
+      } @else {
+        <p class="m-0 rounded-md border-2 border-dashed border-border p-5 text-center text-sm text-ink-muted">{{ t().noRollCall }}</p>
+      }
+    </section>
+
+    <!-- By class on the selected day -->
+    <section class="flex min-w-0 flex-col gap-3 rounded-lg border border-border bg-surface-raised p-4">
+      <div class="flex flex-wrap items-center justify-between gap-2">
+        <h2 class="m-0 text-lg font-extrabold">{{ t().byClass }}</h2>
+        @if (d.daysWithRollCall.length) {
+          <select
+            class="min-h-[2.75rem] rounded-md border border-border bg-surface-sunken px-3 text-base text-ink"
+            [attr.aria-label]="t().day"
+            [ngModel]="d.selectedDay"
+            (ngModelChange)="load($event)"
+          >
+            @for (day of d.daysWithRollCall; track day) {
+              <option [value]="day">{{ dayOption(day) }}</option>
+            }
+          </select>
+        }
+      </div>
+      @if (d.byClass.length) {
+        <div class="flex flex-col gap-3.5">
+          @for (c of d.byClass; track c.classId) {
+            <div class="grid grid-cols-[1fr_auto] items-center gap-x-2.5 gap-y-1.5">
+              <span class="truncate font-extrabold">{{ c.className }}</span>
+              <span class="whitespace-nowrap text-sm font-bold text-ink-muted">
+                {{ c.present }}/{{ c.total }} · {{ c.withBible }} {{ c.withBible === 1 ? 'Bíblia' : t().bibles }}
+              </span>
+              <span
+                class="col-span-2 flex h-3.5 overflow-hidden rounded-full bg-surface-sunken"
+                role="img"
+                [attr.aria-label]="c.present + ' de ' + c.total + ' presentes, ' + c.withBible + ' com Bíblia'"
+              >
+                <span class="h-full bg-accent" [style.width.%]="percent(c.withBible, c.total)"></span>
+                <span class="h-full bg-status-success" [style.width.%]="percent(c.present - c.withBible, c.total)"></span>
+              </span>
+            </div>
+          }
+        </div>
+        <div class="flex flex-wrap gap-x-3 gap-y-1 text-xs font-bold text-ink-muted">
+          <span class="flex items-center gap-1.5"><i class="inline-block h-1 w-3.5 rounded bg-accent"></i>{{ t().barBible }}</span>
+          <span class="flex items-center gap-1.5"><i class="inline-block h-1 w-3.5 rounded bg-status-success"></i>{{ t().barNoBible }}</span>
+          <span>· {{ t().barTotal }}</span>
+        </div>
+      } @else {
+        <p class="m-0 rounded-md border-2 border-dashed border-border p-5 text-center text-sm text-ink-muted">{{ t().noClasses }}</p>
+      }
+    </section>
+
+    <!-- Bibles at home -->
+    <section class="flex min-w-0 flex-col gap-3 rounded-lg border border-border bg-surface-raised p-4">
+      <div class="flex flex-wrap items-center justify-between gap-2">
+        <h2 class="m-0 text-lg font-extrabold">{{ t().biblesAtHome }}</h2>
+        <span class="text-sm font-bold text-ink-muted">{{ t().fromForms }}</span>
+      </div>
+      @if (d.enrolled) {
+        <div class="grid grid-cols-3 gap-2">
+          <div class="rounded-md border border-border bg-surface-sunken px-3 py-2.5">
+            <b class="block font-heading text-2xl font-black leading-none text-status-success">{{ d.biblesAtHome.yes }}</b>
+            <span class="mt-1 block text-xs font-bold text-ink-muted">{{ t().have }}</span>
+          </div>
+          <div class="rounded-md border border-border bg-surface-sunken px-3 py-2.5">
+            <b class="block font-heading text-2xl font-black leading-none text-status-danger">{{ d.biblesAtHome.no }}</b>
+            <span class="mt-1 block text-xs font-bold text-ink-muted">{{ t().haveNot }}</span>
+          </div>
+          <div class="rounded-md border border-border bg-surface-sunken px-3 py-2.5">
+            <b class="block font-heading text-2xl font-black leading-none">{{ d.biblesAtHome.unknown }}</b>
+            <span class="mt-1 block text-xs font-bold text-ink-muted">{{ t().unknown }}</span>
+          </div>
+        </div>
+        <span class="flex h-3 overflow-hidden rounded-full bg-surface-sunken" role="img"
+          [attr.aria-label]="d.biblesAtHome.yes + ' têm, ' + d.biblesAtHome.no + ' não têm, ' + d.biblesAtHome.unknown + ' por saber'">
+          <span class="h-full bg-status-success" [style.width.%]="percent(d.biblesAtHome.yes, d.enrolled)"></span>
+          <span class="h-full bg-status-danger" [style.width.%]="percent(d.biblesAtHome.no, d.enrolled)"></span>
+        </span>
+        @if (d.withoutBible.length) {
+          <div>
+            <p class="m-0 text-sm font-extrabold text-ink-muted">{{ t().mayNeedOne }}</p>
+            <ul class="m-0 list-none p-0">
+              @for (s of d.withoutBible; track s.id) {
+                <li class="flex items-center gap-3 border-t border-border py-2.5 first:border-t-0">
+                  <app-student-avatar [studentId]="s.id" [hasPhoto]="s.hasPhoto" [firstName]="s.name" [lastName]="s.name.split(' ').slice(-1)[0]" [size]="40" />
+                  <span class="min-w-0">
+                    <span class="block truncate font-extrabold">{{ s.name }}</span>
+                    <span class="block text-sm text-ink-muted">{{ s.className }}</span>
+                  </span>
+                </li>
+              }
+            </ul>
+          </div>
+        }
+        @if (d.biblesAtHome.unknown) {
+          <button type="button" class="self-start text-sm font-extrabold text-accent" (click)="goToStudents('bibleUnknown')">
+            {{ t().seeUnknown }} ({{ d.biblesAtHome.unknown }})
+          </button>
+        }
+      } @else {
+        <p class="m-0 text-ink-muted">{{ t().noStudents }}</p>
+      }
+    </section>
+
+    <!-- Birthdays this week -->
+    <section class="flex min-w-0 flex-col gap-3 rounded-lg border border-border bg-surface-raised p-4">
+      <div class="flex flex-wrap items-center justify-between gap-2">
+        <h2 class="m-0 text-lg font-extrabold">{{ t().weekBirthdays }}</h2>
+        <span class="text-sm font-bold text-ink-muted">{{ weekRange(d) }}</span>
+      </div>
+      @if (d.weekBirthdays.length) {
+        <ul class="m-0 list-none p-0">
+          @for (b of d.weekBirthdays; track b.studentId) {
+            <li class="flex items-center gap-3 border-t border-border py-2.5 first:border-t-0">
+              <app-student-avatar [studentId]="b.studentId" [hasPhoto]="b.hasPhoto" [firstName]="b.name" [lastName]="b.name.split(' ').slice(-1)[0]" [size]="40" />
+              <span class="min-w-0 flex-1">
+                <span class="block truncate font-extrabold">{{ b.name }}</span>
+                <span class="block text-sm text-ink-muted">{{ b.className }} · {{ t().turning }} {{ b.turning }}</span>
+              </span>
+              @if (b.date === today) {
+                <span class="whitespace-nowrap rounded-full bg-accent px-2.5 py-1 text-sm font-extrabold text-ink-on-accent">{{ t().today }}</span>
+              } @else {
+                <span class="whitespace-nowrap text-sm font-extrabold text-ink-muted">{{ weekdayShort(b.date) }}</span>
+              }
+            </li>
+          }
+        </ul>
+      } @else {
+        <p class="m-0 text-ink-muted">{{ t().noBirthdays }}</p>
+      }
+    </section>
+  </div>
+} @else if (!failed()) {
+  <p class="text-ink-muted">{{ t().loading }}</p>
+}

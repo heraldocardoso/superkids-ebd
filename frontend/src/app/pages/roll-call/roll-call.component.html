@@ -1,0 +1,220 @@
+<p-toast position="bottom-center" />
+
+@if (loaded() && !classes().length) {
+  <div class="flex flex-col items-center gap-3 rounded-lg border-2 border-dashed border-border p-6 text-center text-ink-muted">
+    <b class="font-heading text-base text-ink">{{ t().noClassesTitle }}</b>
+    {{ t().noClassesText }}
+    <p-button [label]="t().createClasses" icon="pi pi-plus" severity="warning" (onClick)="goToClasses()" />
+  </div>
+} @else if (classId()) {
+  <!-- Class chips: swipe sideways on a phone -->
+  <div class="-mx-4 flex snap-x scroll-px-4 gap-2 overflow-x-auto px-4 pb-1 sm:scroll-px-6 [scrollbar-width:none] sm:-mx-6 sm:px-6 lg:mx-0 lg:flex-wrap lg:px-0" role="group" [attr.aria-label]="t().classes">
+    @for (c of classes(); track c.id) {
+      <button
+        type="button"
+        class="min-h-[2.75rem] shrink-0 snap-start whitespace-nowrap rounded-full border-[1.5px] border-solid px-4 font-extrabold transition-colors"
+        [class]="c.id === classId() ? 'border-white bg-white text-primary-dark' : 'border-border bg-surface-sunken text-ink-muted hover:border-accent hover:text-ink'"
+        [attr.aria-pressed]="c.id === classId()"
+        (click)="selectClass(c.id)"
+      >
+        {{ c.name }}<span class="ml-1.5 font-bold opacity-70">{{ c.studentCount }}</span>
+      </button>
+    }
+  </div>
+
+  <label class="flex flex-col gap-1.5">
+    <span class="text-xs font-extrabold uppercase tracking-wider text-ink-muted">{{ t().lessonDate }}</span>
+    <app-date-field class="w-full md:w-72" [max]="todayIso" [value]="date()" (valueChange)="changeDate($event ?? '')" />
+  </label>
+
+  <!-- Lesson details -->
+  @if (showDetailsForm()) {
+    <div class="flex flex-col gap-3 rounded-lg border-[1.5px] border-dashed border-accent/50 bg-surface-sunken p-3.5">
+      <div class="flex flex-wrap items-baseline gap-2">
+        <b class="font-heading text-[0.95rem] font-extrabold text-accent">{{ t().lessonDetails }}</b>
+        <span class="text-sm text-ink-muted">{{ t().lessonDetailsHint }}</span>
+      </div>
+      <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
+        <label class="flex min-w-0 flex-col gap-1.5">
+          <span class="text-xs font-extrabold uppercase tracking-wider text-ink-muted">{{ t().teachers }}</span>
+          <input pInputText [(ngModel)]="teachers" (blur)="saveDetails()" [placeholder]="t().teachersPlaceholder" autocapitalize="words" class="w-full" />
+        </label>
+        <label class="flex min-w-0 flex-col gap-1.5">
+          <span class="text-xs font-extrabold uppercase tracking-wider text-ink-muted">{{ t().topic }}</span>
+          <input pInputText [(ngModel)]="topic" (blur)="saveDetails()" [placeholder]="t().topicPlaceholder" class="w-full" />
+        </label>
+      </div>
+      @if (teachers.trim() && topic.trim()) {
+        <p-button [label]="t().done" size="small" styleClass="self-start" (onClick)="finishDetails()" />
+      }
+    </div>
+  } @else {
+    <div class="flex items-center gap-2.5 rounded-lg border border-border bg-surface-sunken py-2.5 pl-3.5 pr-2.5">
+      <div class="grid min-w-0 flex-1 grid-cols-[auto_minmax(0,1fr)] items-baseline gap-x-2.5 gap-y-0.5 text-sm">
+        <span class="text-[0.7rem] font-extrabold uppercase tracking-wider text-ink-muted">{{ t().teachers }}</span>
+        <b class="truncate">{{ lesson()?.teachers }}</b>
+        <span class="text-[0.7rem] font-extrabold uppercase tracking-wider text-ink-muted">Lição</span>
+        <span class="truncate text-ink-muted">{{ lesson()?.topic }}</span>
+      </div>
+      <p-button [label]="t().edit" size="small" (onClick)="editingDetails.set(true)" />
+    </div>
+  }
+
+  <!-- Sticky counter -->
+  <div
+    class="sticky top-[env(safe-area-inset-top,0px)] z-20 -mx-4 flex items-center gap-3 border-b border-border bg-surface/95 px-4 py-2.5 backdrop-blur sm:-mx-6 sm:px-6 lg:mx-0 lg:rounded-lg lg:border"
+  >
+    <div class="flex min-w-0 flex-1 flex-col gap-0.5">
+      <span class="truncate font-heading text-sm font-extrabold">{{ currentClass()?.name }}</span>
+      <span class="flex gap-3 whitespace-nowrap text-sm font-extrabold text-ink-muted">
+        <span><b class="font-heading text-lg font-black text-status-success">{{ counts().present }}</b>/{{ counts().total }} {{ t().present }}</span>
+        <span><b class="font-heading text-lg font-black text-accent">{{ counts().bible }}</b> {{ counts().bible === 1 ? t().bible : t().bibles }}</span>
+      </span>
+    </div>
+    <p-button [label]="t().addStudentShort" icon="pi pi-plus" severity="warning" size="small" [attr.aria-label]="t().addStudent" (onClick)="openQuick()" />
+  </div>
+
+  <div class="flex flex-wrap items-center gap-4 text-sm font-bold text-ink-muted">
+    <span class="flex items-center gap-1.5">
+      <i class="grid h-[1.4rem] w-[1.4rem] place-items-center rounded-md bg-status-success text-ink-on-accent"><i class="pi pi-check text-[0.7rem] font-black"></i></i>
+      {{ t().legendPresent }}
+    </span>
+    <span class="flex items-center gap-1.5">
+      <i class="grid h-[1.4rem] w-[1.4rem] place-items-center rounded-md bg-accent text-ink-on-accent"><i class="pi pi-book text-[0.7rem]"></i></i>
+      {{ t().legendBible }}
+    </span>
+    <span class="hidden sm:inline">{{ t().legendToggle }}</span>
+  </div>
+
+  <!-- Quick add -->
+  @if (quickOpen()) {
+    <form class="flex flex-col gap-3 rounded-lg border-2 border-dashed border-accent/50 bg-surface-raised p-4" (ngSubmit)="addQuick()">
+      <h3 class="m-0 text-base font-extrabold">{{ t().quickTitle }}</h3>
+      <div class="grid grid-cols-1 gap-3 sm:grid-cols-3">
+        <label class="flex min-w-0 flex-col gap-1.5">
+          <span class="text-xs font-extrabold uppercase tracking-wider text-ink-muted">{{ t().firstName }} <b class="text-accent">*</b></span>
+          <input pInputText id="quickFirst" name="first" [(ngModel)]="quickFirst" autocapitalize="words" autocomplete="off" class="w-full" />
+        </label>
+        <label class="flex min-w-0 flex-col gap-1.5">
+          <span class="text-xs font-extrabold uppercase tracking-wider text-ink-muted">{{ t().lastName }}</span>
+          <input pInputText name="last" [(ngModel)]="quickLast" autocapitalize="words" autocomplete="off" class="w-full" />
+        </label>
+        <label class="flex min-w-0 flex-col gap-1.5">
+          <span class="text-xs font-extrabold uppercase tracking-wider text-ink-muted">{{ t().birthDate }}</span>
+          <app-date-field [max]="todayIso" [(value)]="quickBirth" />
+        </label>
+      </div>
+      <p class="m-0 text-sm text-ink-muted">{{ t().quickHint }}</p>
+      <div class="flex flex-wrap gap-2">
+        <p-button type="submit" [label]="t().quickSubmit" severity="warning" [loading]="quickSaving()" styleClass="max-sm:flex-1" />
+        <p-button [label]="t().cancel" [text]="true" (onClick)="quickOpen.set(false)" />
+      </div>
+    </form>
+  }
+
+  <!-- Cards -->
+  @if (cards().length) {
+    <ul class="m-0 grid list-none grid-cols-1 gap-2 p-0 md:grid-cols-2 xl:grid-cols-3">
+      @for (card of cards(); track card.student.id) {
+        @let state = attendance(card.student.id);
+        <li
+          class="flex min-h-[4.25rem] min-w-0 items-center gap-2.5 rounded-lg border-2 py-2 pl-2.5 pr-2 transition-colors"
+          [class]="
+            state === 'present'
+              ? 'border-status-success bg-status-success/10'
+              : state === 'bible'
+                ? 'border-accent bg-surface-raised shadow-[inset_0_0_0_1px_hsl(var(--ui--color-accent)/25%)]'
+                : 'border-border bg-surface-raised'
+          "
+        >
+          <button type="button" class="shrink-0 rounded-full border-0 bg-transparent p-0" [attr.aria-label]="t().openRecordOf + ' ' + card.name" (click)="openRecord(card.student)">
+            <app-student-avatar
+              [studentId]="card.student.id"
+              [firstName]="card.student.firstName"
+              [lastName]="card.student.lastName"
+              [hasPhoto]="card.student.hasPhoto"
+              [incomplete]="card.incomplete"
+            />
+          </button>
+          <div class="flex min-w-0 flex-1 flex-col gap-1">
+            <button type="button" class="min-w-0 truncate border-0 bg-transparent p-0 text-left font-heading text-ink text-[0.95rem] font-extrabold leading-tight" (click)="openRecord(card.student)">
+              {{ card.name }}
+            </button>
+            <div class="flex min-w-0 items-center gap-2 whitespace-nowrap">
+              <span class="shrink-0 text-sm font-bold text-ink-muted">{{ card.age }}</span>
+              @if (card.move) {
+                <span
+                  class="grid h-[1.4rem] w-[1.4rem] shrink-0 place-items-center rounded-full bg-secondary/20 text-secondary"
+                  [title]="card.move"
+                  [attr.aria-label]="card.move"
+                  role="img"
+                ><i class="pi pi-arrow-up-right text-[0.65rem] font-black"></i></span>
+              }
+              @if (card.care.length) {
+                <app-care-badges class="min-w-0" [items]="card.care" [name]="card.name" (openRecord)="openRecord(card.student)" />
+              }
+            </div>
+          </div>
+          <div class="flex shrink-0 gap-1.5" role="group" [attr.aria-label]="t().attendanceOf + ' ' + card.name">
+            <button
+              type="button"
+              class="grid h-[3.1rem] w-[3.1rem] place-items-center rounded-[0.85rem] border-2 transition-colors"
+              [class]="state === 'present' ? 'border-status-success bg-status-success text-ink-on-accent' : 'border-border bg-surface-sunken text-ink-muted [@media(hover:hover)]:hover:border-status-success [@media(hover:hover)]:hover:text-status-success'"
+              [attr.aria-pressed]="state === 'present'"
+              [attr.aria-label]="t().presentNoBible"
+              [title]="t().legendPresent"
+              (click)="mark(card.student, 'present')"
+            >
+              <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7" /></svg>
+            </button>
+            <button
+              type="button"
+              class="grid h-[3.1rem] w-[3.1rem] place-items-center rounded-[0.85rem] border-2 transition-colors"
+              [class]="state === 'bible' ? 'border-accent bg-accent text-ink-on-accent' : 'border-border bg-surface-sunken text-ink-muted [@media(hover:hover)]:hover:border-accent [@media(hover:hover)]:hover:text-accent'"
+              [attr.aria-pressed]="state === 'bible'"
+              [attr.aria-label]="t().presentWithBible"
+              [title]="t().presentWithBible"
+              (click)="mark(card.student, 'bible')"
+            >
+              <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20V3H6.5A2.5 2.5 0 0 0 4 5.5z" /><path d="M4 19.5A2.5 2.5 0 0 0 6.5 22H20v-5" /><path d="M12 6v7M9.5 8.5h5" />
+              </svg>
+            </button>
+          </div>
+        </li>
+      }
+    </ul>
+  } @else {
+    <p class="m-0 rounded-lg border-2 border-dashed border-border p-6 text-center text-ink-muted">{{ t().emptyClass }}</p>
+  }
+
+  <details class="group rounded-lg border border-border bg-surface-sunken">
+    <summary class="flex min-h-[3rem] cursor-pointer list-none items-center gap-2.5 px-3.5 text-sm text-ink-muted [&::-webkit-details-marker]:hidden">
+      <span class="flex-1">{{ t().iconsTitle }}</span>
+      <i class="pi pi-chevron-down transition-transform group-open:rotate-180"></i>
+    </summary>
+    <div class="flex flex-col gap-3 px-3.5 pb-3.5">
+      <p class="m-0 text-sm text-ink-muted">{{ t().iconsHint }}</p>
+      <div class="grid grid-cols-2 gap-2.5 text-sm font-bold md:grid-cols-3">
+        @for (item of careLegend; track item.kind) {
+          <span class="flex items-center gap-2">
+            <span class="grid h-[1.6rem] w-[1.6rem] place-items-center rounded-md bg-surface"><app-care-icon [kind]="item.kind" /></span>
+            {{ item.label }}
+          </span>
+        }
+      </div>
+    </div>
+  </details>
+
+  <p-button [label]="t().dayList" icon="pi pi-download" styleClass="self-start" (onClick)="goToReport()" />
+}
+
+<app-student-form
+  [visible]="formOpen()"
+  (visibleChange)="formOpen.set($event)"
+  [studentId]="formStudentId()"
+  [defaultClassId]="classId()"
+  [classes]="classes()"
+  (saved)="onSaved()"
+  (removed)="onSaved()"
+/>

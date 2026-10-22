@@ -1,0 +1,24 @@
+databaseChangeLog:
+  - changeSet:
+      id: 006-segunda-turma
+      author: super-kids-ebd
+      comment: Criancas que vao de manha e a tarde - uma ficha, duas turmas.
+      changes:
+        - addColumn:
+            tableName: alunos
+            columns:
+              - column:
+                  name: segunda_turma_id
+                  type: BIGINT
+        - addForeignKeyConstraint:
+            baseTableName: alunos
+            baseColumnNames: segunda_turma_id
+            referencedTableName: turmas
+            referencedColumnNames: id
+            constraintName: fk_alunos_segunda_turma
+        - createIndex:
+            tableName: alunos
+            indexName: ix_alunos_segunda_turma
+            columns:
+              - column:
+                  name: segunda_turma_id

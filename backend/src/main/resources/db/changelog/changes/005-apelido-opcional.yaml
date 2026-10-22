@@ -1,0 +1,10 @@
+databaseChangeLog:
+  - changeSet:
+      id: 005-apelido-opcional
+      author: super-kids-ebd
+      comment: Para importar listas so com o primeiro nome; a ficha fica marcada como incompleta.
+      changes:
+        - dropNotNullConstraint:
+            tableName: alunos
+            columnName: apelido
+            columnDataType: VARCHAR(80)

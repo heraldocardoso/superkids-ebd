@@ -1,0 +1,58 @@
+# Super Kids EBD. Portas diferentes das da Escola de Louvor,
+# para as duas apps poderem correr ao mesmo tempo na mesma máquina.
+services:
+
+  db:
+    image: mariadb:11
+    container_name: super-kids-ebd-db
+    environment:
+      TZ: Europe/Lisbon
+      MARIADB_ROOT_PASSWORD: root123
+      MARIADB_DATABASE: super_kids_ebd
+      MARIADB_USER: ebd
+      MARIADB_PASSWORD: ebd123
+    ports:
+      - "3307:3306"
+    volumes:
+      - ebd_db_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    build: ./backend
+    image: super-kids-ebd-backend:1.0.0
+    container_name: super-kids-ebd-backend
+    environment:
+      TZ: Europe/Lisbon
+      DB_HOST: db
+      DB_PORT: 3306
+      DB_NAME: super_kids_ebd
+      DB_USER: ebd
+      DB_PASSWORD: ebd123
+      JWT_SECRET: mudar-este-segredo-em-producao-super-kids-ebd-ad-santarem-casa-do-pai-2026
+      CORS_ORIGINS: http://localhost:8090,http://localhost:4300
+      UPLOADS_DIR: /app/uploads
+    ports:
+      - "8081:8081"
+    volumes:
+      - ebd_uploads:/app/uploads
+    depends_on:
+      db:
+        condition: service_healthy
+
+  frontend:
+    build: ./frontend
+    image: super-kids-ebd-frontend:1.0.0
+    container_name: super-kids-ebd-frontend
+    ports:
+      - "8090:80"
+    depends_on:
+      - backend
+
+volumes:
+  ebd_db_data:
+  # Fotos, comprovativos e assinaturas. Fazer cópia de segurança junto com a base de dados.
+  ebd_uploads:

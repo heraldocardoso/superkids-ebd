@@ -1,0 +1,87 @@
+<p-dialog
+  header="Autorização de dados"
+  [visible]="visible()"
+  (visibleChange)="visible.set($event)"
+  (onShow)="onShow()"
+  [modal]="true"
+  [draggable]="false"
+  [resizable]="false"
+  [blockScroll]="true"
+  [style]="{ width: '46rem' }"
+  styleClass="ebd-sheet"
+>
+  <div class="flex flex-col gap-4">
+    <p class="m-0 text-ink-muted">Criança: <b class="text-ink">{{ childName() }}</b></p>
+
+    <div class="h-[clamp(11rem,32vh,20rem)] shrink-0 overflow-auto rounded-md border border-border bg-surface-sunken px-4 py-3 text-sm leading-relaxed text-ink-muted" tabindex="0">
+      @for (section of text; track section.title) {
+        <h3 class="mb-1 mt-3 text-sm font-extrabold text-ink first:mt-0">{{ section.title }}</h3>
+        @for (p of section.paragraphs ?? []; track $index) {
+          <p class="m-0 mb-1.5">{{ p }}</p>
+        }
+        @if (section.bullets) {
+          <ul class="m-0 mb-1.5 pl-5">
+            @for (b of section.bullets; track $index) {
+              <li>{{ b }}</li>
+            }
+          </ul>
+        }
+      }
+    </div>
+
+    <div class="flex flex-col">
+      @for (q of questions; track $index; let i = $index) {
+        <div class="flex flex-col gap-2 border-t border-border py-3 first:border-t-0">
+          <span class="font-bold">{{ i + 1 }}. {{ q }}</span>
+          <app-choice-pills [options]="yesNo" [value]="answers()[i]" (valueChange)="setAnswer(i, $event)" />
+        </div>
+      }
+    </div>
+
+    <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
+      <label class="flex flex-col gap-1.5">
+        <span class="text-xs font-extrabold uppercase tracking-wider text-ink-muted">Nome do encarregado de educação</span>
+        <input pInputText [(ngModel)]="signer" autocapitalize="words" class="w-full" />
+      </label>
+      <div class="flex flex-col gap-1.5">
+        <span class="text-xs font-extrabold uppercase tracking-wider text-ink-muted">Relação com a criança</span>
+        <app-choice-pills [options]="relations" [(value)]="relation" />
+      </div>
+    </div>
+
+    <div class="flex flex-col gap-2">
+      <span class="text-xs font-extrabold uppercase tracking-wider text-ink-muted">Assinatura</span>
+      <div class="relative touch-none rounded-lg border-2 border-dashed border-[#8d97c4] bg-[#f4f6fc]">
+        <canvas
+          #pad
+          class="block h-[13rem] w-full touch-none cursor-crosshair rounded-lg md:h-[16rem]"
+          aria-label="Área para assinar com o dedo ou a caneta"
+          (pointerdown)="down($event)"
+          (pointermove)="move($event)"
+          (pointerup)="up()"
+          (pointercancel)="up()"
+          (pointerleave)="up()"
+        ></canvas>
+        <div class="pointer-events-none absolute bottom-11 left-4 right-4 border-t-[1.5px] border-[#b8c0e4]"></div>
+        @if (!drawn()) {
+          <div class="pointer-events-none absolute bottom-4 left-4 text-sm font-bold text-[#6e708c]">Assine aqui com o dedo ou a caneta</div>
+        }
+      </div>
+      <div class="flex items-start justify-between gap-3">
+        <span class="text-sm text-ink-muted">Declaro que sou o encarregado de educação desta criança e que li a informação acima.</span>
+        <p-button label="Limpar" [text]="true" size="small" (onClick)="clear()" />
+      </div>
+    </div>
+
+    @if (error()) {
+      <p class="m-0 rounded-md bg-status-danger-faded px-3 py-2.5 text-sm font-bold text-status-danger" role="alert">{{ error() }}</p>
+    }
+  </div>
+
+  <ng-template pTemplate="footer">
+    <div class="flex w-full flex-wrap justify-end gap-2">
+      <p-button label="Cancelar" [text]="true" (onClick)="visible.set(false)" />
+      <p-button label="Confirmar assinatura" icon="pi pi-check" severity="warning" styleClass="max-md:flex-1" (onClick)="confirm()" />
+    </div>
+  </ng-template>
+</p-dialog>

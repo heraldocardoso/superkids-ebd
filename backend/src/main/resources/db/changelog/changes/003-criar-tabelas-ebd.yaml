@@ -1,0 +1,351 @@
+databaseChangeLog:
+
+  - changeSet:
+      id: 003-criar-tabela-turmas
+      author: super-kids-ebd
+      changes:
+        - createTable:
+            tableName: turmas
+            columns:
+              - column:
+                  name: id
+                  type: BIGINT
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: nome
+                  type: VARCHAR(120)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: ordem
+                  type: INT
+                  defaultValueNumeric: 0
+                  constraints:
+                    nullable: false
+              - column:
+                  name: ultimas_professoras
+                  type: VARCHAR(200)
+
+  - changeSet:
+      id: 004-criar-tabela-alunos
+      author: super-kids-ebd
+      changes:
+        - createTable:
+            tableName: alunos
+            columns:
+              - column:
+                  name: id
+                  type: BIGINT
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: turma_id
+                  type: BIGINT
+              - column:
+                  name: nome
+                  type: VARCHAR(80)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: apelido
+                  type: VARCHAR(80)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: data_nascimento
+                  type: DATE
+              - column:
+                  name: morada
+                  type: VARCHAR(255)
+              - column:
+                  name: alfabetizado
+                  type: VARCHAR(20)
+              - column:
+                  name: tem_biblia
+                  type: BOOLEAN
+              - column:
+                  name: mae_nome
+                  type: VARCHAR(120)
+              - column:
+                  name: mae_contacto
+                  type: VARCHAR(40)
+              - column:
+                  name: mae_instagram
+                  type: VARCHAR(80)
+              - column:
+                  name: mae_nao_aplicavel
+                  type: BOOLEAN
+                  defaultValueBoolean: false
+                  constraints:
+                    nullable: false
+              - column:
+                  name: pai_nome
+                  type: VARCHAR(120)
+              - column:
+                  name: pai_contacto
+                  type: VARCHAR(40)
+              - column:
+                  name: pai_instagram
+                  type: VARCHAR(80)
+              - column:
+                  name: pai_nao_aplicavel
+                  type: BOOLEAN
+                  defaultValueBoolean: false
+                  constraints:
+                    nullable: false
+              - column:
+                  name: encarregado
+                  type: VARCHAR(10)
+              - column:
+                  name: enc_nome
+                  type: VARCHAR(120)
+              - column:
+                  name: enc_parentesco
+                  type: VARCHAR(60)
+              - column:
+                  name: enc_contacto
+                  type: VARCHAR(40)
+              - column:
+                  name: restricao_alimentar
+                  type: BOOLEAN
+              - column:
+                  name: restricao_qual
+                  type: VARCHAR(255)
+              - column:
+                  name: alergia
+                  type: BOOLEAN
+              - column:
+                  name: alergia_qual
+                  type: VARCHAR(255)
+              - column:
+                  name: medicacao
+                  type: BOOLEAN
+              - column:
+                  name: medicacao_qual
+                  type: VARCHAR(255)
+              - column:
+                  name: necessidades_especiais
+                  type: BOOLEAN
+              - column:
+                  name: necessidades_descricao
+                  type: VARCHAR(1000)
+              - column:
+                  name: autismo
+                  type: BOOLEAN
+              - column:
+                  name: mora_com_pais
+                  type: BOOLEAN
+              - column:
+                  name: mae_crista
+                  type: BOOLEAN
+                  defaultValueBoolean: false
+                  constraints:
+                    nullable: false
+              - column:
+                  name: pai_cristao
+                  type: BOOLEAN
+                  defaultValueBoolean: false
+                  constraints:
+                    nullable: false
+              - column:
+                  name: religiao
+                  type: VARCHAR(80)
+              - column:
+                  name: notificacao_escola
+                  type: BOOLEAN
+              - column:
+                  name: notificacao_motivo
+                  type: VARCHAR(255)
+              - column:
+                  name: irmaos
+                  type: BOOLEAN
+              - column:
+                  name: irmaos_descricao
+                  type: VARCHAR(255)
+              - column:
+                  name: notas
+                  type: VARCHAR(2000)
+              - column:
+                  name: rgpd_estado
+                  type: VARCHAR(20)
+                  defaultValue: POR_RECOLHER
+                  constraints:
+                    nullable: false
+              - column:
+                  name: rgpd_forma
+                  type: VARCHAR(20)
+              - column:
+                  name: rgpd_data
+                  type: DATE
+              - column:
+                  name: rgpd_hora
+                  type: TIME
+              - column:
+                  name: rgpd_assinada_por
+                  type: VARCHAR(120)
+              - column:
+                  name: rgpd_relacao
+                  type: VARCHAR(20)
+              - column:
+                  name: rgpd_email
+                  type: VARCHAR(160)
+              - column:
+                  name: rgpd_saude
+                  type: BOOLEAN
+                  defaultValueBoolean: false
+                  constraints:
+                    nullable: false
+              - column:
+                  name: rgpd_foto
+                  type: BOOLEAN
+                  defaultValueBoolean: false
+                  constraints:
+                    nullable: false
+              - column:
+                  name: rgpd_versao_texto
+                  type: VARCHAR(10)
+              - column:
+                  name: tem_foto
+                  type: BOOLEAN
+                  defaultValueBoolean: false
+                  constraints:
+                    nullable: false
+              - column:
+                  name: tem_comprovativo
+                  type: BOOLEAN
+                  defaultValueBoolean: false
+                  constraints:
+                    nullable: false
+              - column:
+                  name: tem_assinatura
+                  type: BOOLEAN
+                  defaultValueBoolean: false
+                  constraints:
+                    nullable: false
+              - column:
+                  name: origem
+                  type: VARCHAR(10)
+                  defaultValue: FICHA
+                  constraints:
+                    nullable: false
+              - column:
+                  name: criado_em
+                  type: DATETIME
+                  defaultValueComputed: CURRENT_TIMESTAMP
+                  constraints:
+                    nullable: false
+              - column:
+                  name: atualizado_em
+                  type: DATETIME
+                  defaultValueComputed: CURRENT_TIMESTAMP
+                  constraints:
+                    nullable: false
+        - addForeignKeyConstraint:
+            baseTableName: alunos
+            baseColumnNames: turma_id
+            referencedTableName: turmas
+            referencedColumnNames: id
+            constraintName: fk_alunos_turma
+        - createIndex:
+            tableName: alunos
+            indexName: ix_alunos_turma
+            columns:
+              - column:
+                  name: turma_id
+
+  - changeSet:
+      id: 005-criar-tabelas-aulas-presencas
+      author: super-kids-ebd
+      changes:
+        - createTable:
+            tableName: aulas
+            columns:
+              - column:
+                  name: id
+                  type: BIGINT
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: turma_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: data
+                  type: DATE
+                  constraints:
+                    nullable: false
+              - column:
+                  name: professoras
+                  type: VARCHAR(200)
+              - column:
+                  name: licao
+                  type: VARCHAR(200)
+        - addUniqueConstraint:
+            tableName: aulas
+            columnNames: turma_id, data
+            constraintName: uk_aulas_turma_data
+        - addForeignKeyConstraint:
+            baseTableName: aulas
+            baseColumnNames: turma_id
+            referencedTableName: turmas
+            referencedColumnNames: id
+            constraintName: fk_aulas_turma
+            onDelete: CASCADE
+        - createIndex:
+            tableName: aulas
+            indexName: ix_aulas_data
+            columns:
+              - column:
+                  name: data
+        - createTable:
+            tableName: presencas
+            columns:
+              - column:
+                  name: id
+                  type: BIGINT
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: aula_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: aluno_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: com_biblia
+                  type: BOOLEAN
+                  defaultValueBoolean: false
+                  constraints:
+                    nullable: false
+        - addUniqueConstraint:
+            tableName: presencas
+            columnNames: aula_id, aluno_id
+            constraintName: uk_presencas_aula_aluno
+        - addForeignKeyConstraint:
+            baseTableName: presencas
+            baseColumnNames: aula_id
+            referencedTableName: aulas
+            referencedColumnNames: id
+            constraintName: fk_presencas_aula
+            onDelete: CASCADE
+        - addForeignKeyConstraint:
+            baseTableName: presencas
+            baseColumnNames: aluno_id
+            referencedTableName: alunos
+            referencedColumnNames: id
+            constraintName: fk_presencas_aluno
+            onDelete: CASCADE

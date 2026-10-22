@@ -1,0 +1,149 @@
+<p-toast position="bottom-center" />
+
+<h1 class="m-0 font-heading text-2xl font-black">{{ t().title }}</h1>
+
+<div class="grid grid-cols-2 gap-1 rounded-full bg-surface-sunken p-1 sm:inline-grid sm:w-auto sm:self-start" role="tablist">
+  @for (tb of ['attendance', 'birthdays']; track tb) {
+    <button
+      type="button"
+      role="tab"
+      class="min-h-[2.5rem] rounded-full px-4 text-sm font-extrabold"
+      [class]="tab() === tb ? 'bg-accent text-ink-on-accent' : 'text-ink-muted'"
+      [attr.aria-selected]="tab() === tb"
+      (click)="setTab($any(tb))"
+    >
+      {{ tb === 'attendance' ? t().tabAttendance : t().tabBirthdays }}
+    </button>
+  }
+</div>
+
+<div class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+  <label class="flex min-w-0 flex-col gap-1.5">
+    <span class="text-xs font-extrabold uppercase tracking-wider text-ink-muted">{{ t().class }}</span>
+    <p-dropdown [options]="classOptions()" [ngModel]="classId()" (ngModelChange)="setClass($event)" styleClass="w-full" appendTo="body" />
+  </label>
+  @if (tab() === 'attendance') {
+    <label class="flex min-w-0 flex-col gap-1.5">
+      <span class="text-xs font-extrabold uppercase tracking-wider text-ink-muted">{{ t().date }}</span>
+      <app-date-field [max]="todayIso" [value]="date()" (valueChange)="setDate($event ?? '')" />
+    </label>
+  } @else {
+    <div class="flex min-w-0 flex-col gap-1.5">
+      <span class="text-xs font-extrabold uppercase tracking-wider text-ink-muted">{{ t().period }}</span>
+      <div class="grid grid-cols-2 gap-1 rounded-lg bg-surface-sunken p-1">
+        @for (p of ['week', 'month']; track p) {
+          <button type="button" class="min-h-[2.25rem] rounded-md text-sm font-extrabold" [class]="period() === p ? 'bg-white text-primary-dark' : 'text-ink-muted'" (click)="setPeriod($any(p))">
+            {{ p === 'week' ? t().week : t().month }}
+          </button>
+        }
+      </div>
+    </div>
+    <label class="flex min-w-0 flex-col gap-1.5">
+      <span class="text-xs font-extrabold uppercase tracking-wider text-ink-muted">{{ period() === 'week' ? t().weekOf : t().monthLabel }}</span>
+      @if (period() === 'week') {
+        <app-date-field [value]="weekDay()" (valueChange)="setWeekDay($event ?? '')" />
+      } @else {
+        <app-date-field view="month" [value]="month()" (valueChange)="setMonth($event ?? '')" />
+      }
+    </label>
+  }
+</div>
+
+<div class="flex flex-wrap items-center gap-2">
+  <span class="mr-auto text-xs font-extrabold uppercase tracking-wider text-ink-muted">{{ t().preview }}</span>
+  <p-button [label]="t().download" icon="pi pi-download" severity="warning" [loading]="busy()" (onClick)="download()" />
+</div>
+
+@if (tab() === 'attendance') {
+  @for (r of attendance(); track r.className) {
+    <section class="flex flex-col gap-3 rounded-lg border border-border bg-surface-raised p-4 sm:p-5">
+      <header class="flex items-start gap-3 border-b border-border pb-3">
+        <img src="logo-ad.svg" alt="" class="h-9 w-9" />
+        <div class="min-w-0">
+          <span class="text-xs font-extrabold uppercase tracking-wider text-accent">{{ t().attendanceTitle }}</span>
+          <h2 class="m-0 truncate font-heading text-lg font-black">{{ r.className }}</h2>
+        </div>
+      </header>
+      <dl class="m-0 grid grid-cols-1 gap-2 text-sm sm:grid-cols-2">
+        <div class="rounded-md bg-surface-sunken px-3 py-2"><dt class="text-[0.7rem] font-extrabold uppercase text-ink-muted">{{ t().date }}</dt><dd class="m-0 font-bold">{{ dateLabel() }}</dd></div>
+        <div class="rounded-md bg-surface-sunken px-3 py-2"><dt class="text-[0.7rem] font-extrabold uppercase text-ink-muted">{{ t().teachers }}</dt><dd class="m-0 font-bold">{{ r.teachers || '—' }}</dd></div>
+        <div class="rounded-md bg-surface-sunken px-3 py-2 sm:col-span-2"><dt class="text-[0.7rem] font-extrabold uppercase text-ink-muted">{{ t().topic }}</dt><dd class="m-0 font-bold">{{ r.topic || '—' }}</dd></div>
+      </dl>
+      <div class="flex flex-wrap gap-2 text-sm font-extrabold">
+        <span class="rounded-full bg-status-success-faded px-3 py-1 text-status-success">{{ t().presentOf.replace('{p}', '' + r.rows.length).replace('{n}', '' + r.enrolled) }}</span>
+        <span class="rounded-full bg-status-warning-faded px-3 py-1 text-accent">{{ t().withBible.replace('{n}', '' + bibleCount(r)) }}</span>
+      </div>
+      @if (r.rows.length) {
+        <div class="overflow-hidden rounded-md border border-border">
+          <table class="w-full border-collapse text-sm">
+            <thead class="bg-surface-sunken text-left text-[0.7rem] uppercase tracking-wider text-ink-muted">
+              <tr><th class="w-8 px-3 py-2">#</th><th class="px-3 py-2">{{ t().colName }}</th><th class="w-16 px-3 py-2 text-center">{{ t().colAge }}</th><th class="w-16 px-3 py-2 text-center">{{ t().colBible }}</th></tr>
+            </thead>
+            <tbody>
+              @for (row of r.rows; track $index) {
+                <tr class="border-t border-border">
+                  <td class="px-3 py-2 text-ink-muted">{{ $index + 1 }}</td>
+                  <td class="px-3 py-2 font-bold">{{ row.name }}</td>
+                  <td class="px-3 py-2 text-center">{{ row.age ?? '—' }}</td>
+                  <td class="px-3 py-2 text-center">
+                    @if (row.bible) {
+                      <span class="inline-grid h-6 w-6 place-items-center rounded-full bg-status-success text-ink-on-accent" aria-label="Sim"><i class="pi pi-check text-[0.65rem] font-black"></i></span>
+                    } @else {
+                      <span class="inline-grid h-6 w-6 place-items-center rounded-full bg-status-danger text-white" aria-label="Não"><i class="pi pi-times text-[0.65rem] font-black"></i></span>
+                    }
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      } @else {
+        <p class="m-0 rounded-md border border-dashed border-border p-4 text-center text-ink-muted">{{ t().noRollCall }}</p>
+      }
+    </section>
+  }
+} @else {
+  @for (g of birthdays(); track g.className) {
+    <section class="flex flex-col gap-3 rounded-lg border border-border bg-surface-raised p-4 sm:p-5">
+      <header class="flex items-start gap-3 border-b border-border pb-3">
+        <img src="logo-ad.svg" alt="" class="h-9 w-9" />
+        <div class="min-w-0">
+          <span class="text-xs font-extrabold uppercase tracking-wider text-accent">{{ t().birthdaysTitle }} · {{ periodLabel() }}</span>
+          <h2 class="m-0 truncate font-heading text-lg font-black">{{ g.className }}</h2>
+        </div>
+      </header>
+      @if (g.items.length) {
+        <ul class="m-0 flex list-none flex-col gap-1.5 p-0 md:hidden">
+          @for (b of g.items; track b.studentId) {
+            <li class="flex items-center gap-3 rounded-md bg-surface-sunken px-3 py-2">
+              <span class="w-20 shrink-0 text-sm font-extrabold text-accent">{{ birthdayDay(b) }}</span>
+              <span class="flex min-w-0 flex-1 flex-col">
+                <b class="truncate">{{ b.name }}</b>
+                <span class="truncate text-sm text-ink-muted">{{ t().years.replace('{n}', '' + b.turning) }} · {{ b.guardianContact || '—' }}</span>
+              </span>
+            </li>
+          }
+        </ul>
+        <div class="hidden overflow-hidden rounded-md border border-border md:block">
+          <table class="w-full border-collapse text-sm">
+            <thead class="bg-surface-sunken text-left text-[0.7rem] uppercase tracking-wider text-ink-muted">
+              <tr><th class="px-3 py-2">{{ t().colDay }}</th><th class="px-3 py-2">{{ t().colName }}</th><th class="px-3 py-2">{{ t().colTurning }}</th><th class="px-3 py-2">{{ t().colContact }}</th></tr>
+            </thead>
+            <tbody>
+              @for (b of g.items; track b.studentId) {
+                <tr class="border-t border-border">
+                  <td class="px-3 py-2 font-extrabold text-accent">{{ birthdayDay(b) }}</td>
+                  <td class="px-3 py-2 font-bold">{{ b.name }}</td>
+                  <td class="px-3 py-2">{{ t().years.replace('{n}', '' + b.turning) }}</td>
+                  <td class="px-3 py-2 text-ink-muted">{{ b.guardianContact || '—' }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      } @else {
+        <p class="m-0 rounded-md border border-dashed border-border p-4 text-center text-ink-muted">{{ t().noBirthdays }}</p>
+      }
+    </section>
+  }
+}

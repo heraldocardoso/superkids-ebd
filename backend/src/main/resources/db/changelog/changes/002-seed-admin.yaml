@@ -1,0 +1,31 @@
+databaseChangeLog:
+
+  - changeSet:
+      id: 002-seed-usuario-admin
+      author: super-kids-ebd
+      comment: "Conta admin inicial (admin@adsantarem.org / admin123 — alterar em produção)"
+      preConditions:
+        - onFail: MARK_RAN
+        - sqlCheck:
+            expectedResult: 0
+            sql: SELECT COUNT(*) FROM usuarios WHERE email = 'admin@adsantarem.org'
+      changes:
+        - insert:
+            tableName: usuarios
+            columns:
+              - column:
+                  name: nome
+                  value: Administrador
+              - column:
+                  name: email
+                  value: admin@adsantarem.org
+              - column:
+                  # BCrypt de "admin123"
+                  name: password
+                  value: $2a$10$YVuXb5cfySgnqZPhffSGHOxHhSDmA.y4EJGpUs1Wkgc0dyLdzFY5y
+              - column:
+                  name: role
+                  value: ADMIN
+              - column:
+                  name: ativo
+                  valueBoolean: true

@@ -1,0 +1,102 @@
+<p-toast position="bottom-center" />
+<p-confirmDialog styleClass="w-[min(26rem,calc(100vw-2rem))]" />
+
+<div class="flex flex-wrap items-end gap-2">
+  <div class="mr-auto">
+    <h1 class="m-0 font-heading text-2xl font-black">{{ t().title }}</h1>
+    <p class="m-0 text-sm text-ink-muted">{{ t().subtitle }}</p>
+  </div>
+  <p-button [label]="t().newUser" icon="pi pi-plus" severity="warning" (onClick)="openNew()" />
+</div>
+
+<!-- Phone: cards -->
+<ul class="m-0 flex list-none flex-col gap-2 p-0 md:hidden">
+  @for (u of users(); track u.id) {
+    <li class="flex items-center gap-3 rounded-lg border border-border bg-surface-raised px-3 py-2.5">
+      <div class="flex min-w-0 flex-1 flex-col gap-0.5">
+        <b class="truncate">{{ u.name }} @if (isMe(u)) { <span class="text-sm font-normal text-ink-muted">({{ t().you }})</span> }</b>
+        <span class="truncate text-sm text-ink-muted">{{ u.email }}</span>
+        <span class="flex gap-1.5">
+          <p-tag [value]="u.role === 'ADMIN' ? t().roleAdmin : t().roleTeacher" [severity]="u.role === 'ADMIN' ? 'warning' : 'info'" />
+          @if (!u.active) { <p-tag [value]="t().inactive" severity="danger" /> }
+        </span>
+      </div>
+      <p-button icon="pi pi-pencil" [text]="true" [rounded]="true" [attr.aria-label]="t().edit" (onClick)="openEdit(u)" />
+      @if (!isMe(u)) {
+        <p-button icon="pi pi-trash" severity="danger" [text]="true" [rounded]="true" [attr.aria-label]="t().remove" (onClick)="remove(u)" />
+      }
+    </li>
+  } @empty {
+    <li class="rounded-lg border-2 border-dashed border-border p-6 text-center text-ink-muted">{{ t().empty }}</li>
+  }
+</ul>
+
+<!-- Tablet / desktop: table -->
+<div class="hidden md:block">
+  <p-table [value]="users()" styleClass="p-datatable-sm">
+    <ng-template pTemplate="header">
+      <tr>
+        <th>{{ t().name }}</th>
+        <th>{{ t().email }}</th>
+        <th>{{ t().role }}</th>
+        <th>{{ t().status }}</th>
+        <th class="w-28 text-right">{{ t().actions }}</th>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="body" let-u>
+      <tr>
+        <td class="font-bold">{{ u.name }} @if (isMe(u)) { <span class="font-normal text-ink-muted">({{ t().you }})</span> }</td>
+        <td class="text-ink-muted">{{ u.email }}</td>
+        <td><p-tag [value]="u.role === 'ADMIN' ? t().roleAdmin : t().roleTeacher" [severity]="u.role === 'ADMIN' ? 'warning' : 'info'" /></td>
+        <td><p-tag [value]="u.active ? t().active : t().inactive" [severity]="u.active ? 'success' : 'danger'" /></td>
+        <td class="text-right">
+          <p-button icon="pi pi-pencil" [text]="true" [rounded]="true" [attr.aria-label]="t().edit" (onClick)="openEdit(u)" />
+          @if (!isMe(u)) {
+            <p-button icon="pi pi-trash" severity="danger" [text]="true" [rounded]="true" [attr.aria-label]="t().remove" (onClick)="remove(u)" />
+          }
+        </td>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="emptymessage">
+      <tr><td colspan="5" class="text-center text-ink-muted">{{ t().empty }}</td></tr>
+    </ng-template>
+  </p-table>
+</div>
+
+<p-dialog
+  [header]="draft.id === null ? t().newUser : t().editUser"
+  [visible]="dialogOpen()"
+  (visibleChange)="dialogOpen.set($event)"
+  [modal]="true"
+  styleClass="ebd-sheet w-[min(28rem,100vw)]"
+>
+  <form class="flex flex-col gap-3.5" (ngSubmit)="save()">
+    <label class="flex flex-col gap-1.5">
+      <span class="text-xs font-extrabold uppercase tracking-wider text-ink-muted">{{ t().name }}</span>
+      <input pInputText name="name" [(ngModel)]="draft.name" autocapitalize="words" class="w-full" />
+    </label>
+    <label class="flex flex-col gap-1.5">
+      <span class="text-xs font-extrabold uppercase tracking-wider text-ink-muted">{{ t().email }}</span>
+      <input pInputText name="email" type="email" [(ngModel)]="draft.email" [disabled]="draft.id !== null" autocomplete="off" class="w-full" />
+    </label>
+    <label class="flex flex-col gap-1.5">
+      <span class="text-xs font-extrabold uppercase tracking-wider text-ink-muted">{{ t().password }}</span>
+      <p-password name="password" [(ngModel)]="draft.password" [feedback]="false" [toggleMask]="true" styleClass="w-full" inputStyleClass="w-full" autocomplete="new-password" />
+      <span class="text-xs text-ink-muted">{{ draft.id === null ? t().passwordHint : t().passwordKeep }}</span>
+    </label>
+    <label class="flex flex-col gap-1.5">
+      <span class="text-xs font-extrabold uppercase tracking-wider text-ink-muted">{{ t().role }}</span>
+      <p-dropdown name="role" [options]="roleOptions()" [(ngModel)]="draft.role" [disabled]="draft.email === me()" styleClass="w-full" appendTo="body" />
+    </label>
+    @if (draft.id !== null && draft.email !== me()) {
+      <label class="flex items-center gap-2">
+        <p-checkbox name="active" [binary]="true" [(ngModel)]="draft.active" />
+        <span class="font-bold">{{ t().active }}</span>
+      </label>
+    }
+    <div class="mt-2 flex justify-end gap-2">
+      <p-button [label]="t().cancel" [text]="true" (onClick)="dialogOpen.set(false)" />
+      <p-button type="submit" [label]="t().save" severity="warning" [loading]="saving()" />
+    </div>
+  </form>
+</p-dialog>

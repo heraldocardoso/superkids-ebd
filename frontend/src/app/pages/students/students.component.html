@@ -1,0 +1,216 @@
+<p-toast position="bottom-center" />
+<p-confirmDialog styleClass="w-[min(26rem,calc(100vw-2rem))]" />
+
+<div class="flex flex-wrap items-center gap-2">
+  <h1 class="m-0 mr-auto font-heading text-2xl font-black">{{ t().title }}</h1>
+  <p-button label="Importar lista" icon="pi pi-upload" [outlined]="true" (onClick)="importOpen.set(true)" />
+  <p-button [label]="t().classes" icon="pi pi-th-large" [outlined]="true" (onClick)="classesOpen.set(true)" />
+  <p-button [label]="t().newStudent" icon="pi pi-plus" severity="warning" [disabled]="!classes().length" (onClick)="open(null)" />
+</div>
+
+<span class="p-input-icon-left w-full">
+  <i class="pi pi-search"></i>
+  <input pInputText type="search" class="w-full" [placeholder]="t().search" [ngModel]="query()" (ngModelChange)="query.set($event)" />
+</span>
+
+<div class="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 [scrollbar-width:none] sm:-mx-6 sm:px-6 lg:mx-0 lg:flex-wrap lg:px-0">
+  <button
+    type="button"
+    class="min-h-[2.5rem] shrink-0 whitespace-nowrap rounded-full border-[1.5px] border-solid px-4 text-sm font-extrabold"
+    [class]="!classId() ? 'border-white bg-white text-primary-dark' : 'border-border bg-surface-sunken text-ink-muted'"
+    (click)="classId.set(null)"
+  >
+    {{ t().all }}
+  </button>
+  @for (c of classes(); track c.id) {
+    <button
+      type="button"
+      class="min-h-[2.5rem] shrink-0 whitespace-nowrap rounded-full border-[1.5px] border-solid px-4 text-sm font-extrabold"
+      [class]="classId() === c.id ? 'border-white bg-white text-primary-dark' : 'border-border bg-surface-sunken text-ink-muted'"
+      (click)="classId.set(c.id)"
+    >
+      {{ c.name }}
+    </button>
+  }
+</div>
+<div class="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 [scrollbar-width:none] sm:-mx-6 sm:px-6 lg:mx-0 lg:flex-wrap lg:px-0">
+  @for (f of filters; track f) {
+    <button
+      type="button"
+      class="min-h-[2.25rem] shrink-0 whitespace-nowrap rounded-full border-[1.5px] border-solid px-3.5 text-sm font-bold"
+      [class]="filter() === f ? 'border-accent bg-accent text-ink-on-accent' : 'border-border bg-transparent text-ink-muted'"
+      [attr.aria-pressed]="filter() === f"
+      (click)="toggleFilter(f)"
+    >
+      {{ t()[f] }}
+    </button>
+  }
+</div>
+
+@if (loaded()) {
+  <p class="m-0 text-sm font-bold text-ink-muted">{{ countLabel(visible().length) }}</p>
+  @if (visible().length) {
+    <ul class="m-0 grid list-none grid-cols-1 gap-2 p-0 md:grid-cols-2 xl:grid-cols-3">
+      @for (row of visible(); track row.student.id) {
+        <li class="flex min-h-[4.25rem] min-w-0 items-center gap-2.5 rounded-lg border-2 border-border bg-surface-raised py-2 pl-2.5 pr-2">
+          <button type="button" class="flex min-w-0 flex-1 items-center gap-2.5 rounded-md text-left" (click)="open(row.student.id)">
+            <app-student-avatar
+              [studentId]="row.student.id"
+              [firstName]="row.student.firstName"
+              [lastName]="row.student.lastName"
+              [hasPhoto]="row.student.hasPhoto"
+              [incomplete]="row.incomplete"
+            />
+            <span class="flex min-w-0 flex-1 flex-col gap-0.5">
+              <span class="truncate font-heading text-[0.95rem] font-extrabold leading-tight">{{ row.name }}</span>
+              <span class="truncate text-sm text-ink-muted">{{ row.age }} · {{ row.className }}</span>
+              @if (row.move) {
+                <span class="flex min-w-0 items-center gap-1 text-[0.75rem] font-extrabold text-secondary">
+                  <i class="pi pi-arrow-up-right text-[0.65rem]"></i><span class="truncate">{{ row.move }}</span>
+                </span>
+              }
+              @if (row.incomplete || row.student.consent.status !== 'signed') {
+                <span class="flex flex-wrap gap-1">
+                  @if (row.incomplete) {
+                    <span class="rounded-full bg-status-danger-faded px-2 text-[0.7rem] font-extrabold text-status-danger">{{ t().incompleteTag }}</span>
+                  }
+                  @if (row.student.consent.status === 'pending') {
+                    <span class="rounded-full bg-status-warning-faded px-2 text-[0.7rem] font-extrabold text-status-warning">{{ t().consentPending }}</span>
+                  } @else if (row.student.consent.status === 'refused') {
+                    <span class="rounded-full bg-status-danger-faded px-2 text-[0.7rem] font-extrabold text-status-danger">{{ t().consentRefused }}</span>
+                  }
+                </span>
+              }
+            </span>
+          </button>
+          @if (row.care.length) {
+            <app-care-badges class="max-w-[40%]" [items]="row.care" [name]="row.name" (openRecord)="open(row.student.id)" />
+          }
+        </li>
+      }
+    </ul>
+  } @else {
+    <p class="m-0 rounded-lg border-2 border-dashed border-border p-6 text-center text-ink-muted">
+      {{ students().length ? t().emptyFilter : t().empty }}
+    </p>
+  }
+}
+
+<p-dialog
+  [header]="t().classesTitle"
+  [visible]="classesOpen()"
+  (visibleChange)="classesOpen.set($event)"
+  [modal]="true"
+  [dismissableMask]="true"
+  styleClass="ebd-sheet w-[min(32rem,100vw)]"
+>
+  <div class="flex flex-col gap-4">
+    @if (missingAges().length) {
+      <div class="flex flex-wrap items-center gap-x-3 gap-y-2 rounded-md border border-secondary/40 bg-secondary/10 px-3 py-2.5 text-sm text-ink">
+        <span class="min-w-0 flex-1">{{ t().agesMissing }}</span>
+        <p-button [label]="t().fillAges" size="small" (onClick)="fillMissingAges()" />
+      </div>
+    }
+
+    <ul class="m-0 flex list-none flex-col gap-2 p-0">
+      @for (c of classes(); track c.id) {
+        <li class="rounded-lg border border-border bg-surface-sunken px-3 py-2">
+          @if (editing() === c.id) {
+            <form class="flex flex-col gap-2.5 py-1" (ngSubmit)="saveEdit(c)">
+              <input pInputText name="editName" class="w-full" [(ngModel)]="editName" />
+              <div class="flex flex-wrap items-center gap-2 text-sm font-bold text-ink-muted">
+                <span>{{ t().ages }}:</span>
+                <span>{{ t().agesFrom }}</span>
+                <input pInputText name="editMin" type="number" inputmode="numeric" min="0" max="18" class="w-[4.5rem]" [(ngModel)]="editMin" />
+                <span>{{ t().agesTo }}</span>
+                <input pInputText name="editMax" type="number" inputmode="numeric" min="0" max="18" class="w-[4.5rem]" [(ngModel)]="editMax" />
+                <span>anos</span>
+              </div>
+              <p class="m-0 text-xs text-ink-muted">{{ t().agesHint }}</p>
+              <div class="flex justify-end gap-2">
+                <p-button [label]="t().cancel" [text]="true" size="small" (onClick)="editing.set(null)" />
+                <p-button type="submit" [label]="t().save" severity="warning" size="small" />
+              </div>
+            </form>
+          } @else {
+            <div class="flex items-center gap-2">
+              <span class="flex min-w-0 flex-1 flex-col">
+                <b class="truncate">{{ c.name }}</b>
+                <span class="text-sm text-ink-muted">
+                  @if (ageRangeLabel(c)) {
+                    {{ ageRangeLabel(c) }} ·
+                  } @else {
+                    <span class="text-status-warning">{{ t().noAges }}</span> ·
+                  }
+                  {{ t().studentsIn.replace('{n}', '' + c.studentCount) }}
+                </span>
+              </span>
+              <p-button icon="pi pi-pencil" [text]="true" [rounded]="true" [attr.aria-label]="t().edit" (onClick)="startEdit(c)" />
+              @if (isAdmin()) {
+                <p-button
+                  icon="pi pi-trash"
+                  severity="danger"
+                  [text]="true"
+                  [rounded]="true"
+                  [disabled]="c.studentCount > 0"
+                  [attr.aria-label]="t().removeClass"
+                  (onClick)="removeClass(c)"
+                />
+              }
+            </div>
+          }
+        </li>
+      }
+    </ul>
+
+    @if (unusedSuggestions().length) {
+      <div class="flex flex-col gap-2">
+        <div class="flex items-center gap-2">
+          <span class="mr-auto text-xs font-extrabold uppercase tracking-wider text-ink-muted">{{ t().suggestions }}</span>
+          @if (unusedSuggestions().length > 1) {
+            <p-button [label]="t().createAll" icon="pi pi-plus" size="small" severity="warning" (onClick)="createAllSuggested()" />
+          }
+        </div>
+        <div class="flex flex-wrap gap-2">
+          @for (s of unusedSuggestions(); track s.name) {
+            <button type="button" class="rounded-full border-[1.5px] border-dashed border-accent/60 bg-transparent px-3 py-1.5 text-sm font-bold text-accent hover:bg-accent/10" (click)="createSuggested(s)">
+              + {{ s.name }}
+            </button>
+          }
+        </div>
+      </div>
+    }
+
+    <form class="flex flex-col gap-2 border-t border-border pt-4" (ngSubmit)="createClass()">
+      <span class="text-xs font-extrabold uppercase tracking-wider text-ink-muted">{{ t().newClass }}</span>
+      <input pInputText name="newClass" class="w-full" [(ngModel)]="newClassName" [placeholder]="t().newClassPlaceholder" />
+      <div class="flex flex-wrap items-center gap-2 text-sm font-bold text-ink-muted">
+        <span>{{ t().agesFrom }}</span>
+        <input pInputText name="newMin" type="number" inputmode="numeric" min="0" max="18" class="w-[4.5rem]" [(ngModel)]="newMin" />
+        <span>{{ t().agesTo }}</span>
+        <input pInputText name="newMax" type="number" inputmode="numeric" min="0" max="18" class="w-[4.5rem]" [(ngModel)]="newMax" />
+        <span class="mr-auto">anos</span>
+        <p-button type="submit" icon="pi pi-plus" [label]="t().create" severity="warning" [disabled]="!newClassName.trim()" />
+      </div>
+    </form>
+    <p class="m-0 text-sm text-ink-muted">{{ isAdmin() ? t().classesHint : t().onlyAdmin }}</p>
+  </div>
+</p-dialog>
+
+<app-student-form
+  [visible]="formOpen()"
+  (visibleChange)="formOpen.set($event)"
+  [studentId]="formStudentId()"
+  [defaultClassId]="defaultClassId()"
+  [classes]="classes()"
+  (saved)="load()"
+  (removed)="load()"
+/>
+
+<app-import-dialog
+  [visible]="importOpen()"
+  (visibleChange)="importOpen.set($event)"
+  [classes]="classes()"
+  [students]="students()"
+  (imported)="load()"
+/>

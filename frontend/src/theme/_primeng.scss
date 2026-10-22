@@ -1,0 +1,691 @@
+/* =============================================================================
+   PrimeNG repaint
+   PrimeNG's lara theme hard-codes its own palette in hex, so changing CSS
+   variables is not enough — these rules repaint the components the app
+   actually uses with the tokens from `main.theme.scss`.
+
+   Button severities carry the meaning:
+     (default)  navy    · neutral primary action
+     warning    yellow  · THE call to action (submit, save, publish)
+     secondary  sky     · quiet secondary action
+     info       sky     · informational action
+     success    green   · confirm / activate
+     danger     red     · delete / destructive
+     contrast   white   · action sitting on a navy surface
+   ========================================================================== */
+
+/* Typeface — lara ships Inter var. Never touch `.pi`: that is the icon font. */
+.p-component {
+  font-family: var(--ui--font-family-base);
+}
+
+/* ------------------------------------------------------------------ BUTTONS */
+
+.p-button {
+  background: hsl(var(--ui--color-primary-dark));
+  border: 1px solid hsl(var(--ui--color-primary-dark));
+  color: hsl(var(--ui--color-ink-on-primary));
+  border-radius: var(--ui--radius-sm);
+  font-weight: 700;
+  transition:
+    background-color 0.15s,
+    border-color 0.15s,
+    color 0.15s,
+    box-shadow 0.15s;
+
+  &:enabled:hover,
+  &:not(:disabled):hover {
+    background: hsl(var(--ui--color-primary));
+    border-color: hsl(var(--ui--color-primary));
+    color: hsl(var(--ui--color-ink-on-primary));
+  }
+
+  &:focus,
+  &:focus-visible {
+    box-shadow: var(--ui--focus-ring);
+    outline: 0 none;
+  }
+
+  &.p-button-outlined {
+    background: transparent;
+    color: hsl(var(--ui--color-primary-dark));
+
+    &:not(:disabled):hover {
+      background: hsl(var(--ui--color-primary-dark) / 8%);
+      color: hsl(var(--ui--color-primary-dark));
+    }
+  }
+
+  &.p-button-text {
+    background: transparent;
+    border-color: transparent;
+    color: hsl(var(--ui--color-primary-dark));
+
+    &:not(:disabled):hover {
+      background: hsl(var(--ui--color-primary-dark) / 8%);
+      border-color: transparent;
+      color: hsl(var(--ui--color-primary-dark));
+    }
+  }
+}
+
+/**
+ * One mixin per severity: solid, outlined and text variants at once.
+ * `$on` is the text colour that sits on the solid fill.
+ *
+ * PrimeNG puts the severity class on the inner <button> for `<p-button>` and on
+ * the host for the `pButton` directive, so both shapes are emitted.
+ */
+@mixin severity($base, $hover, $on: var(--ui--color-ink-inverse)) {
+  &.p-button,
+  > .p-button {
+    background: hsl(#{$base});
+    border-color: hsl(#{$base});
+    color: hsl(#{$on});
+
+    &:not(:disabled):hover {
+      background: hsl(#{$hover});
+      border-color: hsl(#{$hover});
+      color: hsl(#{$on});
+    }
+
+    &:not(:disabled):focus {
+      box-shadow: 0 0 0 0.2rem hsl(#{$base} / 40%);
+    }
+
+    &.p-button-outlined {
+      background: transparent;
+      border-color: hsl(#{$base});
+      color: hsl(#{$base});
+
+      &:not(:disabled):hover {
+        background: hsl(#{$base} / 10%);
+        color: hsl(#{$base});
+      }
+    }
+
+    &.p-button-text {
+      background: transparent;
+      border-color: transparent;
+      color: hsl(#{$base});
+
+      &:not(:disabled):hover {
+        background: hsl(#{$base} / 10%);
+        border-color: transparent;
+        color: hsl(#{$base});
+      }
+    }
+  }
+}
+
+/* THE call to action */
+.p-button-warning {
+  @include severity(
+    var(--ui--color-accent),
+    var(--ui--color-accent-dark),
+    var(--ui--color-ink-on-accent)
+  );
+}
+
+.p-button-secondary {
+  @include severity(var(--ui--color-secondary-dark), var(--ui--color-secondary-darkest));
+}
+
+.p-button-info {
+  @include severity(var(--ui--color-secondary), var(--ui--color-secondary-dark));
+}
+
+.p-button-success {
+  @include severity(var(--ui--color-status-success), var(--ui--color-status-success));
+}
+
+/* Destructive — red, per web convention */
+.p-button-danger {
+  @include severity(var(--ui--color-status-danger), var(--ui--color-status-danger));
+}
+
+/* For actions on a navy surface */
+.p-button-contrast {
+  @include severity(
+    var(--ui--color-ink-inverse),
+    var(--ui--color-accent),
+    var(--ui--color-primary-dark)
+  );
+
+  &.p-button.p-button-outlined,
+  > .p-button.p-button-outlined {
+    border-color: hsl(var(--ui--color-ink-inverse) / 60%);
+    color: hsl(var(--ui--color-ink-inverse));
+
+    &:not(:disabled):hover {
+      background: hsl(var(--ui--color-ink-inverse) / 12%);
+      border-color: hsl(var(--ui--color-accent));
+      color: hsl(var(--ui--color-accent));
+    }
+  }
+}
+
+/* ------------------------------------------------------------------- INPUTS */
+
+.p-inputtext,
+.p-dropdown,
+.p-multiselect,
+.p-inputnumber-input,
+.p-password-input {
+  background: hsl(var(--ui--color-surface));
+  border: 1px solid hsl(var(--ui--color-border));
+  color: hsl(var(--ui--color-ink));
+  border-radius: var(--ui--radius-sm);
+
+  &:enabled:hover,
+  &:not(.p-disabled):hover {
+    border-color: hsl(var(--ui--color-border-strong));
+  }
+
+  &:enabled:focus,
+  &:not(.p-disabled).p-focus {
+    border-color: hsl(var(--ui--color-focus));
+    box-shadow: var(--ui--focus-ring);
+    outline: 0 none;
+  }
+
+  &::placeholder {
+    color: hsl(var(--ui--color-ink-muted) / 70%);
+  }
+}
+
+.p-inputtext.ng-dirty.ng-invalid,
+.p-dropdown.ng-dirty.ng-invalid {
+  border-color: hsl(var(--ui--color-status-danger));
+}
+
+.p-input-icon-left > i:first-of-type {
+  color: hsl(var(--ui--color-ink-muted));
+}
+
+/* Dropdown panel */
+.p-dropdown-panel,
+.p-multiselect-panel {
+  background: hsl(var(--ui--color-surface));
+  border: 1px solid hsl(var(--ui--color-border));
+  border-radius: var(--ui--radius-sm);
+  box-shadow: var(--ui--shadow-md);
+
+  .p-dropdown-item,
+  .p-multiselect-item {
+    color: hsl(var(--ui--color-ink));
+
+    &:not(.p-highlight):not(.p-disabled):hover {
+      background: hsl(var(--ui--color-secondary-lightest));
+      color: hsl(var(--ui--color-primary-dark));
+    }
+
+    &.p-highlight {
+      background: hsl(var(--ui--color-primary-dark));
+      color: hsl(var(--ui--color-ink-on-primary));
+    }
+  }
+}
+
+/* Checkbox / radio */
+.p-checkbox .p-checkbox-box,
+.p-radiobutton .p-radiobutton-box {
+  border: 2px solid hsl(var(--ui--color-border-strong));
+  background: hsl(var(--ui--color-surface));
+  border-radius: var(--ui--radius-sm);
+
+  &.p-highlight {
+    border-color: hsl(var(--ui--color-primary-dark));
+    background: hsl(var(--ui--color-primary-dark));
+
+    .p-checkbox-icon,
+    .p-radiobutton-icon {
+      color: hsl(var(--ui--color-ink-on-primary));
+    }
+
+    &:not(.p-disabled):hover {
+      border-color: hsl(var(--ui--color-primary));
+      background: hsl(var(--ui--color-primary));
+    }
+  }
+
+  &:not(.p-disabled):not(.p-highlight):hover {
+    border-color: hsl(var(--ui--color-secondary));
+  }
+
+  &:not(.p-disabled).p-focus {
+    box-shadow: var(--ui--focus-ring);
+    border-color: hsl(var(--ui--color-focus));
+  }
+}
+
+/* Yes / No pickers */
+.p-selectbutton .p-button {
+  background: hsl(var(--ui--color-surface));
+  border-color: hsl(var(--ui--color-border));
+  color: hsl(var(--ui--color-ink-muted));
+  font-weight: 600;
+
+  &:not(.p-disabled):not(.p-highlight):hover {
+    background: hsl(var(--ui--color-secondary-lightest));
+    border-color: hsl(var(--ui--color-border));
+    color: hsl(var(--ui--color-primary-dark));
+  }
+
+  &.p-highlight {
+    background: hsl(var(--ui--color-primary-dark));
+    border-color: hsl(var(--ui--color-primary-dark));
+    color: hsl(var(--ui--color-ink-on-primary));
+
+    &:hover {
+      background: hsl(var(--ui--color-primary));
+      border-color: hsl(var(--ui--color-primary));
+      color: hsl(var(--ui--color-ink-on-primary));
+    }
+  }
+}
+
+/* Date picker */
+.p-datepicker {
+  background: hsl(var(--ui--color-surface));
+  border: 1px solid hsl(var(--ui--color-border));
+  border-radius: var(--ui--radius-md);
+  box-shadow: var(--ui--shadow-md);
+  color: hsl(var(--ui--color-ink));
+
+  .p-datepicker-header {
+    background: hsl(var(--ui--color-surface-sunken));
+    border-bottom-color: hsl(var(--ui--color-border));
+    color: hsl(var(--ui--color-ink));
+  }
+
+  table td > span {
+    border-radius: var(--ui--radius-sm);
+
+    &.p-highlight {
+      background: hsl(var(--ui--color-primary-dark));
+      color: hsl(var(--ui--color-ink-on-primary));
+    }
+
+    &:not(.p-highlight):not(.p-disabled):hover {
+      background: hsl(var(--ui--color-secondary-lightest));
+    }
+  }
+
+  table td.p-datepicker-today > span {
+    background: hsl(var(--ui--color-accent-light));
+    color: hsl(var(--ui--color-ink-on-accent));
+
+    &.p-highlight {
+      background: hsl(var(--ui--color-primary-dark));
+      color: hsl(var(--ui--color-ink-on-primary));
+    }
+  }
+}
+
+/* -------------------------------------------------------------------- TABLE */
+
+.p-datatable {
+  .p-datatable-thead > tr > th {
+    background: hsl(var(--ui--color-surface-sunken));
+    border-color: hsl(var(--ui--color-border));
+    color: hsl(var(--ui--color-primary-dark));
+    font-weight: 700;
+  }
+
+  .p-datatable-tbody > tr {
+    background: hsl(var(--ui--color-surface));
+    color: hsl(var(--ui--color-ink));
+
+    > td {
+      border-color: hsl(var(--ui--color-border));
+    }
+
+    &:not(.p-highlight):hover {
+      background: hsl(var(--ui--color-secondary-lightest));
+    }
+
+    &.p-highlight {
+      background: hsl(var(--ui--color-primary-lightest));
+      color: hsl(var(--ui--color-primary-dark));
+    }
+  }
+}
+
+.p-paginator {
+  background: transparent;
+  border: 0 none;
+  color: hsl(var(--ui--color-ink-muted));
+
+  .p-paginator-pages .p-paginator-page {
+    border-radius: var(--ui--radius-sm);
+    color: hsl(var(--ui--color-ink-muted));
+
+    &.p-highlight {
+      background: hsl(var(--ui--color-primary-dark));
+      color: hsl(var(--ui--color-ink-on-primary));
+    }
+
+    &:not(.p-highlight):hover {
+      background: hsl(var(--ui--color-secondary-lightest));
+      color: hsl(var(--ui--color-primary-dark));
+    }
+  }
+}
+
+/* ------------------------------------------------------------------ OVERLAY */
+
+.p-dialog {
+  border-radius: var(--ui--radius-md);
+  box-shadow: var(--ui--shadow-lg);
+  border: 0 none;
+
+  .p-dialog-header {
+    background: hsl(var(--ui--color-surface));
+    border-bottom: 1px solid hsl(var(--ui--color-border));
+    color: hsl(var(--ui--color-primary-dark));
+    border-top-left-radius: var(--ui--radius-md);
+    border-top-right-radius: var(--ui--radius-md);
+
+    .p-dialog-title {
+      font-weight: 800;
+    }
+  }
+
+  .p-dialog-content,
+  .p-dialog-footer {
+    background: hsl(var(--ui--color-surface));
+    color: hsl(var(--ui--color-ink));
+  }
+
+  .p-dialog-footer {
+    border-top: 1px solid hsl(var(--ui--color-border));
+    border-bottom-left-radius: var(--ui--radius-md);
+    border-bottom-right-radius: var(--ui--radius-md);
+  }
+}
+
+.p-component-overlay {
+  background: hsl(var(--ui--color-primary-darkest) / 55%);
+}
+
+.p-confirm-dialog .p-confirm-dialog-icon {
+  color: hsl(var(--ui--color-status-warning));
+}
+
+.p-tooltip .p-tooltip-text {
+  background: hsl(var(--ui--color-primary-dark));
+  color: hsl(var(--ui--color-ink-inverse));
+  border-radius: var(--ui--radius-sm);
+  box-shadow: var(--ui--shadow-md);
+}
+
+/* --------------------------------------------------------------------- TAGS
+   Status colours only — a tag never uses a brand colour decoratively. */
+
+.p-tag {
+  border-radius: var(--ui--radius-full);
+  font-weight: 700;
+
+  &.p-tag-success {
+    background: hsl(var(--ui--color-status-success));
+    color: hsl(var(--ui--color-ink-inverse));
+  }
+
+  &.p-tag-info {
+    background: hsl(var(--ui--color-status-info));
+    color: hsl(var(--ui--color-ink-inverse));
+  }
+
+  &.p-tag-warning {
+    background: hsl(var(--ui--color-accent));
+    color: hsl(var(--ui--color-ink-on-accent));
+  }
+
+  &.p-tag-danger {
+    background: hsl(var(--ui--color-status-danger));
+    color: hsl(var(--ui--color-ink-inverse));
+  }
+
+  &.p-tag-secondary {
+    background: hsl(var(--ui--color-gray-light));
+    color: hsl(var(--ui--color-ink-muted));
+  }
+}
+
+/* -------------------------------------------------------------------- TOAST */
+
+.p-toast .p-toast-message {
+  border-radius: var(--ui--radius-md);
+  box-shadow: var(--ui--shadow-lg);
+  border: 0 none;
+  border-left: 6px solid transparent;
+
+  .p-toast-message-content {
+    color: hsl(var(--ui--color-ink));
+  }
+
+  &.p-toast-message-success {
+    background: hsl(var(--ui--color-status-success-faded));
+    border-left-color: hsl(var(--ui--color-status-success));
+
+    .p-toast-message-icon {
+      color: hsl(var(--ui--color-status-success));
+    }
+  }
+
+  &.p-toast-message-error {
+    background: hsl(var(--ui--color-status-danger-faded));
+    border-left-color: hsl(var(--ui--color-status-danger));
+
+    .p-toast-message-icon {
+      color: hsl(var(--ui--color-status-danger));
+    }
+  }
+
+  &.p-toast-message-warn {
+    background: hsl(var(--ui--color-status-warning-faded));
+    border-left-color: hsl(var(--ui--color-status-warning));
+
+    .p-toast-message-icon {
+      color: hsl(var(--ui--color-status-warning));
+    }
+  }
+
+  &.p-toast-message-info {
+    background: hsl(var(--ui--color-secondary-lightest));
+    border-left-color: hsl(var(--ui--color-secondary));
+
+    .p-toast-message-icon {
+      color: hsl(var(--ui--color-secondary-dark));
+    }
+  }
+}
+
+/* ---------------------------------------------------------------- ACCORDION */
+
+.p-accordion .p-accordion-header .p-accordion-header-link {
+  background: hsl(var(--ui--color-surface-sunken));
+  border: 1px solid hsl(var(--ui--color-border));
+  color: hsl(var(--ui--color-primary-dark));
+  border-radius: var(--ui--radius-sm);
+  font-weight: 700;
+
+  &:hover {
+    background: hsl(var(--ui--color-secondary-lightest));
+  }
+}
+
+.p-accordion
+  .p-accordion-header:not(.p-disabled).p-highlight
+  .p-accordion-header-link {
+  background: hsl(var(--ui--color-primary-dark));
+  border-color: hsl(var(--ui--color-primary-dark));
+  color: hsl(var(--ui--color-ink-inverse));
+}
+
+.p-accordion .p-accordion-content {
+  background: hsl(var(--ui--color-surface));
+  border-color: hsl(var(--ui--color-border));
+  color: hsl(var(--ui--color-ink));
+}
+
+/* ------------------------------------------------------------------ MENUBAR */
+
+.p-menubar {
+  background: transparent;
+  border: 0 none;
+  padding: 0.5rem 0;
+
+  .p-menuitem > .p-menuitem-content {
+    border-radius: var(--ui--radius-sm);
+
+    .p-menuitem-link .p-menuitem-text,
+    .p-menuitem-link .p-menuitem-icon {
+      color: hsl(var(--ui--color-ink-muted));
+      font-weight: 600;
+    }
+
+    &:hover {
+      background: hsl(var(--ui--color-secondary-lightest));
+
+      .p-menuitem-link .p-menuitem-text,
+      .p-menuitem-link .p-menuitem-icon {
+        color: hsl(var(--ui--color-primary-dark));
+      }
+    }
+  }
+
+  .p-menubar-button {
+    color: hsl(var(--ui--color-primary-dark));
+
+    &:hover {
+      background: hsl(var(--ui--color-secondary-lightest));
+      color: hsl(var(--ui--color-primary-dark));
+    }
+  }
+}
+
+/* ------------------------------------------------- MOBILE-FIRST DATA TABLES
+   Below `md` a table is the wrong shape for a phone, so every row becomes a
+   card: the header row disappears and each cell carries its own label
+   (`<span class="p-column-title">`) on the left with the value on the right.
+   From `md` up it is an ordinary table again and the labels are hidden.
+
+   The tables also declare `responsiveLayout="stack"`, but PrimeNG scopes its
+   generated stack CSS to the table's own id, so these rules — not that — are
+   what actually drives the layout. */
+
+.p-column-title {
+  display: none;
+}
+
+@media screen and (max-width: 768px) {
+  .p-datatable {
+    /* A stacked row is never wider than the screen: the table is laid out by
+       its content, so it has to be capped explicitly. */
+    .p-datatable-table {
+      min-width: 0 !important;
+      width: 100%;
+      max-width: 100%;
+      table-layout: fixed;
+    }
+
+    .p-datatable-thead,
+    .p-datatable-tfoot {
+      display: none;
+    }
+
+    .p-datatable-tbody > tr {
+      display: block;
+      margin-bottom: 0.75rem;
+      border: 1px solid hsl(var(--ui--color-border));
+      border-radius: var(--ui--radius-md);
+      box-shadow: var(--ui--shadow-sm);
+      overflow: hidden;
+
+      > td {
+        display: flex;
+        width: 100%;
+        max-width: 100%;
+        min-width: 0;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.25rem 1rem;
+        padding: 0.7rem 1rem;
+        text-align: right;
+        border-width: 0 0 1px 0;
+
+        &:last-child {
+          border-bottom: 0 none;
+        }
+
+        /* Long values (an email, a title) wrap instead of widening the card. */
+        > * {
+          min-width: 0;
+          overflow-wrap: anywhere;
+        }
+
+        /* An empty header cell means an action column: no label, buttons right. */
+        &:not(:has(.p-column-title)) {
+          justify-content: flex-end;
+        }
+      }
+    }
+
+    .p-column-title {
+      display: inline-flex;
+      flex: 0 0 auto;
+      font-size: 0.7rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: hsl(var(--ui--color-ink-muted));
+      text-align: left;
+    }
+  }
+}
+
+/* ------------------------------------------------------- LAYOUT GUARANTEES */
+
+/* Tables scroll inside themselves, never the page */
+.p-datatable-wrapper {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Dialogs never exceed the viewport, even with a fixed rem width */
+.p-dialog {
+  max-width: calc(100vw - 1.5rem);
+  max-height: calc(100vh - 1.5rem);
+
+  .p-dialog-content {
+    overflow-x: hidden;
+  }
+}
+
+/* Comfortable touch targets on coarse pointers */
+@media (pointer: coarse) {
+  .p-button,
+  .p-inputtext,
+  .p-dropdown,
+  .p-multiselect,
+  .p-calendar .p-inputtext,
+  .p-checkbox .p-checkbox-box {
+    min-height: 2.6rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .p-dialog {
+    max-width: calc(100vw - 1rem);
+
+    .p-dialog-header,
+    .p-dialog-content,
+    .p-dialog-footer {
+      padding-left: 1rem;
+      padding-right: 1rem;
+    }
+  }
+}

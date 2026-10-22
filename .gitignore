@@ -1,0 +1,22 @@
+# Node
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+.pnp/
+.pnp.js
+dist/
+build/
+.env
+.env.local
+.env.*.local
+
+# Java compiled
+*.class
+target/
+*.jar
+*.war
+
+# Angular
+.angular/

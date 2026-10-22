@@ -1,0 +1,83 @@
+<div class="min-h-screen bg-surface">
+  <header class="border-b border-border bg-surface pt-[env(safe-area-inset-top,0px)]">
+    <div class="mx-auto flex max-w-content items-center gap-3 px-4 py-3 sm:px-6 lg:py-4">
+      <img src="logo-ad.svg" alt="" class="h-10 w-10 lg:h-12 lg:w-12" />
+      <span class="flex min-w-0 flex-col leading-tight">
+        <span class="truncate text-lg font-black tracking-tight lg:text-xl">
+          Super Kids
+          <span class="ml-1 rounded-[0.35rem] bg-accent px-1.5 py-0.5 align-[3px] text-[0.7rem] font-black tracking-wider text-ink-on-accent">EBD</span>
+        </span>
+        <span class="truncate text-xs font-bold text-ink-muted">{{ t().subtitle }}</span>
+      </span>
+
+      <span class="ml-auto hidden max-w-[12rem] truncate text-sm font-semibold text-ink-muted md:inline">
+        <i class="pi pi-user mr-1.5 text-xs"></i>{{ auth.user()?.name }}
+      </span>
+      <button
+        type="button"
+        class="ml-auto flex h-10 items-center gap-2 rounded-full border border-border px-3 text-sm font-bold text-ink-muted transition-colors hover:border-accent hover:text-ink md:ml-0"
+        (click)="logout()"
+        [attr.aria-label]="t().logout"
+      >
+        <i class="pi pi-sign-out"></i>
+        <span class="hidden sm:inline">{{ t().logout }}</span>
+      </button>
+    </div>
+
+    <div class="border-t border-border/60 bg-surface-sunken/60">
+      <div class="mx-auto max-w-content px-4 py-2 sm:px-6">
+        <app-motto />
+      </div>
+    </div>
+
+    <!-- Desktop tabs -->
+    <nav class="mx-auto hidden max-w-content gap-2 px-6 py-4 lg:flex" [attr.aria-label]="t().sections">
+      @for (entry of nav(); track entry.route) {
+        <a
+          [routerLink]="entry.route"
+          routerLinkActive="!border-accent !bg-accent !text-ink-on-accent"
+          class="rounded-full border border-border bg-surface-raised px-5 py-2 text-sm font-extrabold text-ink-muted transition-colors hover:border-accent hover:text-ink"
+        >
+          {{ t()[entry.label] }}
+        </a>
+      }
+    </nav>
+  </header>
+
+  <main
+    class="mx-auto flex max-w-content flex-col px-4 pb-[calc(6.5rem+env(safe-area-inset-bottom,0px))] pt-4 sm:px-6 lg:pb-12 lg:pt-6"
+  >
+    <router-outlet />
+    <footer class="mt-6 border-t border-border pt-4 text-center text-xs leading-relaxed text-ink-muted md:hidden">
+      {{ motto.mission }}
+    </footer>
+  </main>
+
+  <!-- Phone and tablet: bottom tab bar -->
+  <nav
+    class="fixed inset-x-0 bottom-0 z-30 grid border-t border-border bg-surface/95 px-2 pb-[calc(0.4rem+env(safe-area-inset-bottom,0px))] pt-1.5 backdrop-blur lg:hidden"
+    [style.grid-template-columns]="'repeat(' + nav().length + ', minmax(0, 1fr))'"
+    [attr.aria-label]="t().sections"
+  >
+    @for (entry of nav(); track entry.route) {
+      <a
+        [routerLink]="entry.route"
+        routerLinkActive
+        #rla="routerLinkActive"
+        class="group flex min-h-[3.5rem] flex-col items-center justify-center gap-1 text-[0.72rem] font-extrabold"
+        [class]="rla.isActive ? 'text-accent' : 'text-ink-muted'"
+        [attr.aria-current]="rla.isActive ? 'page' : null"
+      >
+        <span
+          class="grid h-[1.9rem] w-[3.2rem] place-items-center rounded-full transition-colors"
+          [class]="rla.isActive ? 'bg-accent text-ink-on-accent' : ''"
+        >
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path [attr.d]="entry.icon" />
+          </svg>
+        </span>
+        {{ t()[entry.label] }}
+      </a>
+    }
+  </nav>
+</div>

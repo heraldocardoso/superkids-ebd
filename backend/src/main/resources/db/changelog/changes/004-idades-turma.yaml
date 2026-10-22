@@ -1,0 +1,15 @@
+databaseChangeLog:
+  - changeSet:
+      id: 004-idades-turma
+      author: super-kids-ebd
+      comment: Idade minima e maxima de cada turma, para avisar quando a crianca ja passou da idade.
+      changes:
+        - addColumn:
+            tableName: turmas
+            columns:
+              - column:
+                  name: idade_minima
+                  type: INT
+              - column:
+                  name: idade_maxima
+                  type: INT
